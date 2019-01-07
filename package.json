@@ -1,0 +1,39 @@
+{
+  "name": "spinal-model-timeseries",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "dev": "rm -rf dist && tsc --watch & nodemon dist",
+    "test": "rm -rf dist && tsc && mocha --require ts-node/register test/**/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spinalcom/spinal-model-timeseries.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "SPINALCOM",
+  "bugs": {
+    "url": "https://github.com/spinalcom/spinal-model-timeseries/issues"
+  },
+  "homepage": "https://github.com/spinalcom/spinal-model-timeseries#readme",
+  "dependencies": {
+    "spinal-core-connectorjs_type": "git+https://github.com/spinalcom/spinal-core-connectorjs_type.git"
+  },
+  "devDependencies": {
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.12.12",
+    "jsdoc-to-markdown": "^4.0.1",
+    "mocha": "^5.2.0",
+    "nodemon": "^1.18.8",
+    "spinal-lib-forgefile": "git+https://github.com/spinalcom/spinal-lib-forgefile.git",
+    "timekeeper": "^2.1.2",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "tslint-config-airbnb": "^5.11.1",
+    "typescript": "^3.2.2",
+    "typescript-eslint-parser": "^21.0.2"
+  }
+}
