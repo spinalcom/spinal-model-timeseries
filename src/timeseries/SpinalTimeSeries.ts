@@ -38,6 +38,9 @@ import {
  * @extends {Model}
  */
 class SpinalTimeSeries extends Model {
+  public static relationName: string = 'hasTimeSeries';
+  public static nodeTypeName: string = 'TimeSeries';
+
   id: spinal.Str;
   currentArchive: spinal.Ptr<SpinalTimeSeriesArchiveDay>;
   archive: spinal.Ptr<SpinalTimeSeriesArchive>;

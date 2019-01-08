@@ -223,6 +223,8 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         });
     }
 }
+SpinalTimeSeries.relationName = 'hasTimeSeries';
+SpinalTimeSeries.nodeTypeName = 'TimeSeries';
 exports.SpinalTimeSeries = SpinalTimeSeries;
 spinal_core_connectorjs_type_1.spinalCore.register_models(SpinalTimeSeries);
 exports.default = SpinalTimeSeries;

@@ -10,6 +10,8 @@ import { SpinalTimeSeriesArchiveDay, SpinalDateValue, SpinalDateValueArray } fro
  * @extends {Model}
  */
 declare class SpinalTimeSeries extends Model {
+    static relationName: string;
+    static nodeTypeName: string;
     id: spinal.Str;
     currentArchive: spinal.Ptr<SpinalTimeSeriesArchiveDay>;
     archive: spinal.Ptr<SpinalTimeSeriesArchive>;
