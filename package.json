@@ -2,7 +2,7 @@
   "name": "spinal-model-timeseries",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "rm -rf dist && tsc",
     "dev": "rm -rf dist && tsc --watch & nodemon dist",
@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "",
   "license": "SPINALCOM",
-  "types": "./dist/timeseries/SpinalTimeSeries.d.ts",
+  "types": "./dist/timeseries/index.d.ts",
   "bugs": {
     "url": "https://github.com/spinalcom/spinal-model-timeseries/issues"
   },
