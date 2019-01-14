@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "",
   "license": "SPINALCOM",
-  "types": "./dist/timeseries/index.d.ts",
+  "types": "./dist/index.d.ts",
   "bugs": {
     "url": "https://github.com/spinalcom/spinal-model-timeseries/issues"
   },
