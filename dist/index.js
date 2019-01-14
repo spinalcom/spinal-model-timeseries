@@ -138,5 +138,6 @@ class SpinalServiceTimeseries {
         return timeseries.getFromIntervalTimeGen(start, end);
     }
 }
+exports.SpinalServiceTimeseries = SpinalServiceTimeseries;
 exports.default = SpinalServiceTimeseries;
 //# sourceMappingURL=index.js.map

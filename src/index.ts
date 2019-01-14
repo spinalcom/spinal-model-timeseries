@@ -158,6 +158,7 @@ class SpinalServiceTimeseries{
 }
 export default SpinalServiceTimeseries;
 export {
+  SpinalServiceTimeseries,
   SpinalTimeSeries,
   SpinalTimeSeriesArchive,
   SpinalTimeSeriesArchiveDay,
