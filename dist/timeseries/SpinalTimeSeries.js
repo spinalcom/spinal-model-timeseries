@@ -131,6 +131,19 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         });
     }
     /**
+     * @param {number} value
+     * @returns {Promise<void>}
+     * @memberof SpinalTimeSeries
+     */
+    insert(value, date) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let currentDay;
+            const archive = yield this.getArchive();
+            currentDay = yield archive.getOrCreateArchiveAtDate(date);
+            currentDay.insert(value, date);
+        });
+    }
+    /**
      * @param {(number | string | Date)} date
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
      * @memberof SpinalTimeSeries

@@ -48,6 +48,12 @@ declare class SpinalTimeSeries extends Model {
      */
     push(value: number): Promise<void>;
     /**
+     * @param {number} value
+     * @returns {Promise<void>}
+     * @memberof SpinalTimeSeries
+     */
+    insert(value: number, date: number | string | Date): Promise<void>;
+    /**
      * @param {(number | string | Date)} date
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
      * @memberof SpinalTimeSeries

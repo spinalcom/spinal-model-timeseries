@@ -83,6 +83,32 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         return prom;
     }
     /**
+   * @returns {Promise<SpinalTimeSeriesArchiveDay>}
+   * @memberof SpinalTimeSeriesArchive
+   */
+    getOrCreateArchiveAtDate(atDate) {
+        const date = SpinalTimeSeriesArchive.normalizeDate(atDate);
+        const spinalTimeSeriesArchiveDay = this.itemLoadedDictionary.get(date);
+        if (spinalTimeSeriesArchiveDay !== undefined) {
+            return spinalTimeSeriesArchiveDay;
+        }
+        const value = new SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
+        // search index
+        let index = 0;
+        for (let idx = 0; idx < this.lstDate.length; idx += 1) {
+            const element = this.lstDate[idx];
+            if (element > date) {
+                break;
+            }
+            index += 1;
+        }
+        this.lstDate.insert(index, [date]);
+        this.lstItem.insert(index, [new spinal_core_connectorjs_type_1.Ptr(value)]);
+        const prom = Promise.resolve(value);
+        this.itemLoadedDictionary.set(date, prom);
+        return prom;
+    }
+    /**
      * @param {(number|string)} [start=0]
      * @param {(number|string)} [end=Date.now()]
      * @returns {AsyncIterableIterator<SpinalDateValue>}

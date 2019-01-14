@@ -1,6 +1,6 @@
 import {
   SpinalDateValueArray as SDVA,
-} from '../../src/timeseries/SpinalTimeSeries';
+} from '../../dist/timeseries/SpinalTimeSeries';
 
 function createDay(dayToRemove: number) {
   const day = new Date();

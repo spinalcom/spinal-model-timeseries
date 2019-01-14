@@ -87,7 +87,9 @@ class SpinalTimeSeriesArchiveDay extends Model {
    * @memberof SpinalTimeSeriesArchiveDay
    */
   at(index: number): SpinalDateValue {
-    if (index >= this.length.get()) return undefined;
+    if (index >= this.length.get() || index < 0) {
+      return undefined;
+    }
     return {
       date : this.lstDate.get(index),
       value : this.lstValue.get(index),

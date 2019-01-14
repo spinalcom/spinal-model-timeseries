@@ -1,9 +1,10 @@
-
+import {} from 'mocha';
 import {
   SpinalTimeSeriesArchiveDay,
   SpinalDateValue,
   SpinalDateValueArray,
-} from '../../src/timeseries/SpinalTimeSeries';
+} from '../../dist/index';
+import { FileSystem } from 'spinal-core-connectorjs_type';
 import * as assert from 'assert';
 import * as tk from 'timekeeper';
 tk.freeze(1546532599592);
@@ -18,6 +19,14 @@ const isFloat64ArraySorted = (array: Float64Array): number => {
 describe('SpinalTimeSeriesArchiveDay', () => {
   let instanceTest: SpinalTimeSeriesArchiveDay;
   describe('test on construnctor',  () => {
+
+    it('Create with FileSystem._sig_server === false', () => {
+      FileSystem._sig_server = false;
+      instanceTest = new SpinalTimeSeriesArchiveDay();
+      FileSystem._sig_server = true;
+      assert(typeof instanceTest.length === 'undefined');
+      assert(typeof instanceTest.dateDay === 'undefined');
+    });
 
     it('Create with initilzed value', () => {
       instanceTest = new SpinalTimeSeriesArchiveDay();
@@ -49,6 +58,11 @@ describe('SpinalTimeSeriesArchiveDay', () => {
       }
       assert(instanceTest.getActualBufferSize() === 32);
     });
+    it('insert for an otherday does return false', () => {
+      const res = instanceTest.insert(42, Date.now() + 100000000000000000);
+      assert(res === false);
+      assert(instanceTest.getActualBufferSize() === 32);
+    });
   });
   describe('test on get', () => {
     let instanceGet: SpinalDateValueArray;
@@ -62,6 +76,14 @@ describe('SpinalTimeSeriesArchiveDay', () => {
       instanceGet = instanceTest.get();
       const { date } = instanceTest.get();
       assert(isFloat64ArraySorted(date) === 1);
+    });
+    it('get out of range', () => {
+      const test = instanceTest.at(100000000);
+      const test1 = instanceTest.at(0);
+      const test2 = instanceTest.at(-1);
+      assert(test === undefined);
+      assert(test2 === undefined);
+      assert(test1 !== undefined);
     });
 
     it('get at index equal date and compare', () => {

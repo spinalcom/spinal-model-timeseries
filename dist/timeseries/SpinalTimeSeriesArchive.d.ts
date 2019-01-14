@@ -14,6 +14,11 @@ declare class SpinalTimeSeriesArchive extends Model {
      */
     getTodayArchive(): Promise<SpinalTimeSeriesArchiveDay>;
     /**
+   * @returns {Promise<SpinalTimeSeriesArchiveDay>}
+   * @memberof SpinalTimeSeriesArchive
+   */
+    getOrCreateArchiveAtDate(atDate: number | string | Date): Promise<SpinalTimeSeriesArchiveDay>;
+    /**
      * @param {(number|string)} [start=0]
      * @param {(number|string)} [end=Date.now()]
      * @returns {AsyncIterableIterator<SpinalDateValue>}

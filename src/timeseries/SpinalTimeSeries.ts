@@ -132,6 +132,19 @@ class SpinalTimeSeries extends Model {
     }
     currentDay.push(value);
   }
+
+  /**
+   * @param {number} value
+   * @returns {Promise<void>}
+   * @memberof SpinalTimeSeries
+   */
+  async insert(value: number, date: number|string|Date): Promise<void> {
+    let currentDay: SpinalTimeSeriesArchiveDay;
+    const archive = await this.getArchive();
+    currentDay = await archive.getOrCreateArchiveAtDate(date);
+    currentDay.insert(value, date);
+  }
+
   /**
    * @param {(number | string | Date)} date
    * @returns {Promise<SpinalTimeSeriesArchiveDay>}
