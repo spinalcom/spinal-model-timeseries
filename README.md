@@ -2,7 +2,8 @@
 
 # spinal-model-timeseries
 
-Model + service for the store values in time. the value will be sorted by time etc...
+Model + service to store values in time to an BmsEndpoint Node.
+The value will be sorted by time etc...
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -67,7 +68,8 @@ Model + service for the store values in time. the value will be sorted by time e
 
 # Description
 
-Model + service for the store values in time. the value will be sorted by time etc...
+Model + service to store values in time to an BmsEndpoint Node.
+The value will be sorted by time etc...
 
 
 # API
