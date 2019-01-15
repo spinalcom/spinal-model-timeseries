@@ -12,12 +12,25 @@ import {
 } from './timeseries/SpinalTimeSeries';
 
 type EndpointId = string;
+/**
+ * @class SpinalServiceTimeseries
+ */
 class SpinalServiceTimeseries{
   private timeSeriesDictionnary: Map<EndpointId, Promise<SpinalTimeSeries>>;
+  /**
+   *Creates an instance of SpinalServiceTimeseries.
+   * @memberof SpinalServiceTimeseries
+   */
   constructor() {
     this.timeSeriesDictionnary = new Map();
   }
 
+  /**
+   * @param {EndpointId} endpointNodeId
+   * @param {(number|boolean)} value
+   * @returns {Promise<boolean>}
+   * @memberof SpinalServiceTimeseries
+   */
   public async pushFromEndpoint(endpointNodeId: EndpointId, value: number|boolean)
   : Promise<boolean> {
     try {
@@ -33,6 +46,13 @@ class SpinalServiceTimeseries{
     return true;
   }
 
+  /**
+   * @param {EndpointId} endpointNodeId
+   * @param {(number|boolean)} value
+   * @param {(number|string|Date)} date
+   * @returns {Promise<boolean>}
+   * @memberof SpinalServiceTimeseries
+   */
   public async insertFromEndpoint(endpointNodeId: EndpointId,
                                   value: number|boolean,
                                   date: number|string|Date,
@@ -50,6 +70,11 @@ class SpinalServiceTimeseries{
     return true;
   }
 
+  /**
+   * @param {EndpointId} endpointNodeId
+   * @returns {Promise<boolean>}
+   * @memberof SpinalServiceTimeseries
+   */
   async hasTimeSeries(endpointNodeId: EndpointId): Promise<boolean> {
     if (this.timeSeriesDictionnary.has(endpointNodeId)) {
       return true;
@@ -62,6 +87,11 @@ class SpinalServiceTimeseries{
     return true;
   }
 
+  /**
+   * @param {EndpointId} endpointNodeId
+   * @returns {Promise<SpinalTimeSeries>}
+   * @memberof SpinalServiceTimeseries
+   */
   async getOrCreateTimeSeries(endpointNodeId: EndpointId): Promise<SpinalTimeSeries> {
     if (this.timeSeriesDictionnary.has(endpointNodeId)) {
       return this.timeSeriesDictionnary.get(endpointNodeId);

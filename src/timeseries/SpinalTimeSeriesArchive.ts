@@ -31,6 +31,10 @@ import {
   SpinalDateValue,
 } from './SpinalTimeSeriesArchiveDay';
 
+/**
+ * @class SpinalTimeSeriesArchive
+ * @extends {Model}
+ */
 class SpinalTimeSeriesArchive extends Model {
 
   // synchronized
@@ -41,6 +45,11 @@ class SpinalTimeSeriesArchive extends Model {
   // not synchronized
   private itemLoadedDictionary: Map<number, Promise<SpinalTimeSeriesArchiveDay>>;
 
+  /**
+   *Creates an instance of SpinalTimeSeriesArchive.
+   * @param {number} [initialBlockSize=50]
+   * @memberof SpinalTimeSeriesArchive
+   */
   constructor(initialBlockSize: number = 50) {
     super({
       initialBlockSize,
@@ -51,6 +60,12 @@ class SpinalTimeSeriesArchive extends Model {
     this.itemLoadedDictionary = new Map;
   }
 
+  /**
+   * @static
+   * @param {(number | string | Date)} date
+   * @returns {number}
+   * @memberof SpinalTimeSeriesArchive
+   */
   public static normalizeDate(date: number | string | Date) : number {
     return new Date(date).setHours(0, 0, 0, 0);
   }
@@ -158,6 +173,11 @@ class SpinalTimeSeriesArchive extends Model {
     return result;
   }
 
+  /**
+   * @param {(number | string | Date)} date
+   * @returns {Promise<SpinalTimeSeriesArchiveDay>}
+   * @memberof SpinalTimeSeriesArchive
+   */
   public getArchiveAtDate(date: number | string | Date): Promise<SpinalTimeSeriesArchiveDay> {
     const normalizedDate: number = SpinalTimeSeriesArchive.normalizeDate(date);
     if (this.itemLoadedDictionary.has(normalizedDate)) {
@@ -188,6 +208,11 @@ class SpinalTimeSeriesArchive extends Model {
     return this.lstDate;
   }
 
+  /**
+   * @param {(number | string | Date)} date
+   * @returns {boolean}
+   * @memberof SpinalTimeSeriesArchive
+   */
   public dateExist(date: number | string | Date): boolean {
     const normalizedDate: number = SpinalTimeSeriesArchive.normalizeDate(date);
     for (let idx = this.lstDate.length - 1; idx >= 0; idx -= 1) {

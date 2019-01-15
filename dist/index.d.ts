@@ -1,12 +1,42 @@
 /// <reference types="node" />
 import { SpinalTimeSeries, SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay, SpinalDateValue, SpinalDateValueArray } from './timeseries/SpinalTimeSeries';
 declare type EndpointId = string;
+/**
+ * @class SpinalServiceTimeseries
+ */
 declare class SpinalServiceTimeseries {
     private timeSeriesDictionnary;
+    /**
+     *Creates an instance of SpinalServiceTimeseries.
+     * @memberof SpinalServiceTimeseries
+     */
     constructor();
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {(number|boolean)} value
+     * @returns {Promise<boolean>}
+     * @memberof SpinalServiceTimeseries
+     */
     pushFromEndpoint(endpointNodeId: EndpointId, value: number | boolean): Promise<boolean>;
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {(number|boolean)} value
+     * @param {(number|string|Date)} date
+     * @returns {Promise<boolean>}
+     * @memberof SpinalServiceTimeseries
+     */
     insertFromEndpoint(endpointNodeId: EndpointId, value: number | boolean, date: number | string | Date): Promise<boolean>;
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @returns {Promise<boolean>}
+     * @memberof SpinalServiceTimeseries
+     */
     hasTimeSeries(endpointNodeId: EndpointId): Promise<boolean>;
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @returns {Promise<SpinalTimeSeries>}
+     * @memberof SpinalServiceTimeseries
+     */
     getOrCreateTimeSeries(endpointNodeId: EndpointId): Promise<SpinalTimeSeries>;
     /**
      * @param {SpinalTimeSeries} timeseries

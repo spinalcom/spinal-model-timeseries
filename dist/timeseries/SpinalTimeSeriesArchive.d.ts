@@ -1,12 +1,27 @@
 /// <reference types="node" />
 import { Model } from 'spinal-core-connectorjs_type';
 import { SpinalTimeSeriesArchiveDay, SpinalDateValue } from './SpinalTimeSeriesArchiveDay';
+/**
+ * @class SpinalTimeSeriesArchive
+ * @extends {Model}
+ */
 declare class SpinalTimeSeriesArchive extends Model {
     private lstDate;
     private lstItem;
     initialBlockSize: spinal.Val;
     private itemLoadedDictionary;
+    /**
+     *Creates an instance of SpinalTimeSeriesArchive.
+     * @param {number} [initialBlockSize=50]
+     * @memberof SpinalTimeSeriesArchive
+     */
     constructor(initialBlockSize?: number);
+    /**
+     * @static
+     * @param {(number | string | Date)} date
+     * @returns {number}
+     * @memberof SpinalTimeSeriesArchive
+     */
     static normalizeDate(date: number | string | Date): number;
     /**
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
@@ -33,12 +48,22 @@ declare class SpinalTimeSeriesArchive extends Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getFromIntervalTime(start: number | string | Date, end?: number | string | Date): Promise<SpinalDateValue[]>;
+    /**
+     * @param {(number | string | Date)} date
+     * @returns {Promise<SpinalTimeSeriesArchiveDay>}
+     * @memberof SpinalTimeSeriesArchive
+     */
     getArchiveAtDate(date: number | string | Date): Promise<SpinalTimeSeriesArchiveDay>;
     /**
      * @returns {spinal.Lst<spinal.Val>}
      * @memberof SpinalTimeSeriesArchive
      */
     getDates(): spinal.Lst<spinal.Val>;
+    /**
+     * @param {(number | string | Date)} date
+     * @returns {boolean}
+     * @memberof SpinalTimeSeriesArchive
+     */
     dateExist(date: number | string | Date): boolean;
 }
 export default SpinalTimeSeriesArchive;

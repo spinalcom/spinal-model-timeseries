@@ -38,7 +38,17 @@ import {
  * @extends {Model}
  */
 class SpinalTimeSeries extends Model {
+  /**
+   * @static
+   * @type {string}
+   * @memberof SpinalTimeSeries
+   */
   public static relationName: string = 'hasTimeSeries';
+  /**
+   * @static
+   * @type {string}
+   * @memberof SpinalTimeSeries
+   */
   public static nodeTypeName: string = 'TimeSeries';
 
   id: spinal.Str;
@@ -155,10 +165,25 @@ class SpinalTimeSeries extends Model {
     return archive.getArchiveAtDate(date);
   }
 
+  /**
+   * @param {spinal.Ptr<SpinalTimeSeriesArchiveDay>} ptr
+   * @returns {Promise<SpinalTimeSeriesArchiveDay>}
+   * @memberof SpinalTimeSeries
+   */
   loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>)
   : Promise<SpinalTimeSeriesArchiveDay>;
+  /**
+   * @param {spinal.Ptr<SpinalTimeSeriesArchive>} ptr
+   * @returns {Promise<SpinalTimeSeriesArchive>}
+   * @memberof SpinalTimeSeries
+   */
   loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchive>)
   : Promise<SpinalTimeSeriesArchive>;
+  /**
+   * @param {(spinal.Ptr<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)} ptr
+   * @returns {(Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)}
+   * @memberof SpinalTimeSeries
+   */
   loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)
   : Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive> {
     if (typeof ptr.data.model !== 'undefined') {

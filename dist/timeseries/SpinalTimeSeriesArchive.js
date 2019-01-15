@@ -52,7 +52,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
 const SpinalTimeSeriesArchiveDay_1 = require("./SpinalTimeSeriesArchiveDay");
+/**
+ * @class SpinalTimeSeriesArchive
+ * @extends {Model}
+ */
 class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
+    /**
+     *Creates an instance of SpinalTimeSeriesArchive.
+     * @param {number} [initialBlockSize=50]
+     * @memberof SpinalTimeSeriesArchive
+     */
     constructor(initialBlockSize = 50) {
         super({
             initialBlockSize,
@@ -61,6 +70,12 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         });
         this.itemLoadedDictionary = new Map;
     }
+    /**
+     * @static
+     * @param {(number | string | Date)} date
+     * @returns {number}
+     * @memberof SpinalTimeSeriesArchive
+     */
     static normalizeDate(date) {
         return new Date(date).setHours(0, 0, 0, 0);
     }
@@ -170,6 +185,11 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
             return result;
         });
     }
+    /**
+     * @param {(number | string | Date)} date
+     * @returns {Promise<SpinalTimeSeriesArchiveDay>}
+     * @memberof SpinalTimeSeriesArchive
+     */
     getArchiveAtDate(date) {
         const normalizedDate = SpinalTimeSeriesArchive.normalizeDate(date);
         if (this.itemLoadedDictionary.has(normalizedDate)) {
@@ -199,6 +219,11 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
     getDates() {
         return this.lstDate;
     }
+    /**
+     * @param {(number | string | Date)} date
+     * @returns {boolean}
+     * @memberof SpinalTimeSeriesArchive
+     */
     dateExist(date) {
         const normalizedDate = SpinalTimeSeriesArchive.normalizeDate(date);
         for (let idx = this.lstDate.length - 1; idx >= 0; idx -= 1) {

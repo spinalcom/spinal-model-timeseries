@@ -154,6 +154,11 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
             return archive.getArchiveAtDate(date);
         });
     }
+    /**
+     * @param {(spinal.Ptr<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)} ptr
+     * @returns {(Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)}
+     * @memberof SpinalTimeSeries
+     */
     loadPtr(ptr) {
         if (typeof ptr.data.model !== 'undefined') {
             return Promise.resolve(ptr.data.model);
@@ -236,7 +241,17 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         });
     }
 }
+/**
+ * @static
+ * @type {string}
+ * @memberof SpinalTimeSeries
+ */
 SpinalTimeSeries.relationName = 'hasTimeSeries';
+/**
+ * @static
+ * @type {string}
+ * @memberof SpinalTimeSeries
+ */
 SpinalTimeSeries.nodeTypeName = 'TimeSeries';
 exports.SpinalTimeSeries = SpinalTimeSeries;
 spinal_core_connectorjs_type_1.spinalCore.register_models(SpinalTimeSeries);

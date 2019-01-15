@@ -13,10 +13,23 @@ const SpinalTimeSeries_1 = require("./timeseries/SpinalTimeSeries");
 exports.SpinalTimeSeries = SpinalTimeSeries_1.SpinalTimeSeries;
 exports.SpinalTimeSeriesArchive = SpinalTimeSeries_1.SpinalTimeSeriesArchive;
 exports.SpinalTimeSeriesArchiveDay = SpinalTimeSeries_1.SpinalTimeSeriesArchiveDay;
+/**
+ * @class SpinalServiceTimeseries
+ */
 class SpinalServiceTimeseries {
+    /**
+     *Creates an instance of SpinalServiceTimeseries.
+     * @memberof SpinalServiceTimeseries
+     */
     constructor() {
         this.timeSeriesDictionnary = new Map();
     }
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {(number|boolean)} value
+     * @returns {Promise<boolean>}
+     * @memberof SpinalServiceTimeseries
+     */
     pushFromEndpoint(endpointNodeId, value) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -33,6 +46,13 @@ class SpinalServiceTimeseries {
             return true;
         });
     }
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {(number|boolean)} value
+     * @param {(number|string|Date)} date
+     * @returns {Promise<boolean>}
+     * @memberof SpinalServiceTimeseries
+     */
     insertFromEndpoint(endpointNodeId, value, date) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -49,6 +69,11 @@ class SpinalServiceTimeseries {
             return true;
         });
     }
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @returns {Promise<boolean>}
+     * @memberof SpinalServiceTimeseries
+     */
     hasTimeSeries(endpointNodeId) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.timeSeriesDictionnary.has(endpointNodeId)) {
@@ -61,6 +86,11 @@ class SpinalServiceTimeseries {
             return true;
         });
     }
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @returns {Promise<SpinalTimeSeries>}
+     * @memberof SpinalServiceTimeseries
+     */
     getOrCreateTimeSeries(endpointNodeId) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.timeSeriesDictionnary.has(endpointNodeId)) {

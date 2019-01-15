@@ -1,12 +1,13 @@
 {
   "name": "spinal-model-timeseries",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "build": "rm -rf dist && tsc",
     "dev": "rm -rf dist && tsc --watch & nodemon dist",
-    "test": "rm -rf dist && tsc && nyc mocha --require ts-node/register test/**/*.ts"
+    "test": "rm -rf dist && tsc && nyc mocha --require ts-node/register test/**/*.ts",
+    "docs": "jsdoc2md --no-cache --files 'src/**/*.ts' --configure jsdoc2md.json --template 'Markdown Templates/README.hbs' > README.md && doctoc README.md"
   },
   "repository": {
     "type": "git",
@@ -21,12 +22,19 @@
   },
   "homepage": "https://github.com/spinalcom/spinal-model-timeseries#readme",
   "dependencies": {
-    "spinal-env-viewer-graph-service": "git+https://github.com/spinalcom/Spinal-Graph-Service.git#develop",
+    "spinal-env-viewer-graph-service": "git+https://github.com/spinalcom/Spinal-Graph-Service.git",
     "spinal-core-connectorjs_type": "git+https://github.com/spinalcom/spinal-core-connectorjs_type.git"
   },
   "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.2.3",
+    "@babel/preset-env": "^7.2.3",
+    "@babel/preset-typescript": "^7.1.0",
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.12",
+    "doctoc": "^1.4.0",
+    "jsdoc-babel": "^0.5.0",
     "jsdoc-to-markdown": "^4.0.1",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.8",

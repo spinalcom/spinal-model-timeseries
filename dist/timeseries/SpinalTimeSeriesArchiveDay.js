@@ -1,6 +1,37 @@
 "use strict";
+/*
+ * Copyright 2018 SpinalCom - www.spinalcom.com
+ *
+ * This file is part of SpinalCore.
+ *
+ * Please read all of the following terms and conditions
+ * of the Free Software license Agreement ("Agreement")
+ * carefully.
+ *
+ * This Agreement is a legally binding contract between
+ * the Licensee (as defined below) and SpinalCom that
+ * sets forth the terms and conditions that govern your
+ * use of the Program. By installing and/or using the
+ * Program, you agree to abide by all the terms and
+ * conditions stated or referenced herein.
+ *
+ * If you do not agree to abide by these terms and
+ * conditions, do not demonstrate your acceptance and do
+ * not install or use the Program.
+ * You should have received a copy of the license along
+ * with this file. If not, see
+ * <http://resources.spinalcom.com/licenses.pdf>.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
+/**
+ * @property {spinal.TypedArray_Float64} lstDate
+ * @property {spinal.TypedArray_Float64} lstValue
+ * @property {spinal.Val} length
+ * @property {spinal.Val} dateDay
+ * @class SpinalTimeSeriesArchiveDay
+ * @extends {Model}
+ */
 class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
     constructor(initialBlockSize = 50) {
         super();
@@ -15,6 +46,10 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
         this.lstDate.resize([initialBlockSize]);
         this.lstValue.resize([initialBlockSize]);
     }
+    /**
+     * @param {number} data
+     * @memberof SpinalTimeSeriesArchiveDay
+     */
     push(data) {
         if (this.lstDate.size(0) <= this.length.get())
             this.addBufferSizeLength();
@@ -22,6 +57,12 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
         this.lstValue.set_val(this.length.get(), data);
         this.length.set(this.length.get() + 1);
     }
+    /**
+     * @param {number} data
+     * @param {(number|string|Date)} date
+     * @returns {boolean}
+     * @memberof SpinalTimeSeriesArchiveDay
+     */
     insert(data, date) {
         const targetDate = new Date(date).getTime();
         const maxDate = new Date().setHours(23, 59, 59, 999);
@@ -52,6 +93,11 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
         }
         return false;
     }
+    /**
+     * @param {number} [index]
+     * @returns {(SpinalDateValue | SpinalDateValueArray)}
+     * @memberof SpinalTimeSeriesArchiveDay
+     */
     get(index) {
         if (typeof index === 'number')
             return this.at(index);
@@ -83,6 +129,10 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
     getActualBufferSize() {
         return this.lstDate.size(0);
     }
+    /**
+     * @private
+     * @memberof SpinalTimeSeriesArchiveDay
+     */
     addBufferSizeLength() {
         this.lstDate.resize([this.length.get() * 2]);
         this.lstValue.resize([this.length.get() * 2]);

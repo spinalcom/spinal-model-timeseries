@@ -10,7 +10,17 @@ import { SpinalTimeSeriesArchiveDay, SpinalDateValue, SpinalDateValueArray } fro
  * @extends {Model}
  */
 declare class SpinalTimeSeries extends Model {
+    /**
+     * @static
+     * @type {string}
+     * @memberof SpinalTimeSeries
+     */
     static relationName: string;
+    /**
+     * @static
+     * @type {string}
+     * @memberof SpinalTimeSeries
+     */
     static nodeTypeName: string;
     id: spinal.Str;
     currentArchive: spinal.Ptr<SpinalTimeSeriesArchiveDay>;
@@ -59,7 +69,17 @@ declare class SpinalTimeSeries extends Model {
      * @memberof SpinalTimeSeries
      */
     getDataOfDay(date: number | string | Date): Promise<SpinalTimeSeriesArchiveDay>;
+    /**
+     * @param {spinal.Ptr<SpinalTimeSeriesArchiveDay>} ptr
+     * @returns {Promise<SpinalTimeSeriesArchiveDay>}
+     * @memberof SpinalTimeSeries
+     */
     loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>): Promise<SpinalTimeSeriesArchiveDay>;
+    /**
+     * @param {spinal.Ptr<SpinalTimeSeriesArchive>} ptr
+     * @returns {Promise<SpinalTimeSeriesArchive>}
+     * @memberof SpinalTimeSeries
+     */
     loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchive>): Promise<SpinalTimeSeriesArchive>;
     /**
      * @returns {Promise<SpinalTimeSeriesArchive>}
