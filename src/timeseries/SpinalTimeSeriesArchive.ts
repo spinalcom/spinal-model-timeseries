@@ -128,6 +128,13 @@ class SpinalTimeSeriesArchive extends Model {
     if (spinalTimeSeriesArchiveDay !== undefined) {
       return spinalTimeSeriesArchiveDay;
     }
+    for (let index = 0; index < this.lstDate.length; index += 1) {
+      const element = this.lstDate[index];
+      const ptr = this.lstItem[index];
+      if (element.get() === date) {
+        return this.loadPtr(ptr);
+      }
+    }
     const value = new SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
 
     // search index
