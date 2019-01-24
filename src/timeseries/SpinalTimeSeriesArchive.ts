@@ -25,6 +25,7 @@ import {
   Model,
   Ptr,
   spinalCore,
+  FileSystem,
 } from 'spinal-core-connectorjs_type';
 import {
   SpinalTimeSeriesArchiveDay,
@@ -70,6 +71,24 @@ class SpinalTimeSeriesArchive extends Model {
     return new Date(date).setHours(0, 0, 0, 0);
   }
 
+  loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>)
+  : Promise<SpinalTimeSeriesArchiveDay> {
+    if (typeof ptr.data.model !== 'undefined') {
+      return Promise.resolve(ptr.data.model);
+    }
+    if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
+      return Promise.reject('Load Ptr to 0');
+    }
+    if (typeof FileSystem._objects[ptr.data.value] !== 'undefined') {
+      return Promise.resolve(<SpinalTimeSeriesArchiveDay>FileSystem._objects[ptr.data.value]);
+    }
+    return new Promise((resolve) => {
+      ptr.load((element) => {
+        resolve(element);
+      });
+    });
+  }
+
   /**
    * @returns {Promise<SpinalTimeSeriesArchiveDay>}
    * @memberof SpinalTimeSeriesArchive
@@ -81,6 +100,14 @@ class SpinalTimeSeriesArchive extends Model {
 
     if (spinalTimeSeriesArchiveDay !== undefined) {
       return spinalTimeSeriesArchiveDay;
+    }
+
+    for (let index = 0; index < this.lstDate.length; index += 1) {
+      const element = this.lstDate[index];
+      const ptr = this.lstItem[index];
+      if (element.get() === date) {
+        return this.loadPtr(ptr);
+      }
     }
     const value = new SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
     this.lstDate.push(date);

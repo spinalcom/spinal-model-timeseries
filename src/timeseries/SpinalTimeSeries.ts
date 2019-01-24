@@ -191,6 +191,11 @@ class SpinalTimeSeries extends Model {
     }    if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
       return Promise.reject('Load Ptr to 0');
     }
+    if (typeof FileSystem._objects[ptr.data.value] !== 'undefined') {
+      return Promise.resolve(
+        <SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>FileSystem._objects[ptr.data.value],
+        );
+    }
     return new Promise((resolve) => {
       ptr.load((element) => {
         resolve(element);

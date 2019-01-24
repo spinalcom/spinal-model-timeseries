@@ -166,6 +166,9 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
             return Promise.reject('Load Ptr to 0');
         }
+        if (typeof spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value] !== 'undefined') {
+            return Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value]);
+        }
         return new Promise((resolve) => {
             ptr.load((element) => {
                 resolve(element);

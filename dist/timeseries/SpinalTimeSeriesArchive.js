@@ -79,6 +79,22 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
     static normalizeDate(date) {
         return new Date(date).setHours(0, 0, 0, 0);
     }
+    loadPtr(ptr) {
+        if (typeof ptr.data.model !== 'undefined') {
+            return Promise.resolve(ptr.data.model);
+        }
+        if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
+            return Promise.reject('Load Ptr to 0');
+        }
+        if (typeof spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value] !== 'undefined') {
+            return Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value]);
+        }
+        return new Promise((resolve) => {
+            ptr.load((element) => {
+                resolve(element);
+            });
+        });
+    }
     /**
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
      * @memberof SpinalTimeSeriesArchive
@@ -89,6 +105,13 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         const spinalTimeSeriesArchiveDay = this.itemLoadedDictionary.get(date);
         if (spinalTimeSeriesArchiveDay !== undefined) {
             return spinalTimeSeriesArchiveDay;
+        }
+        for (let index = 0; index < this.lstDate.length; index += 1) {
+            const element = this.lstDate[index];
+            const ptr = this.lstItem[index];
+            if (element.get() === date) {
+                return this.loadPtr(ptr);
+            }
         }
         const value = new SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
         this.lstDate.push(date);
