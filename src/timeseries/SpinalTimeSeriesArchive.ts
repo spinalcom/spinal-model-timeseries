@@ -136,7 +136,7 @@ class SpinalTimeSeriesArchive extends Model {
       }
     }
     const value = new SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
-
+    value.dateDay.set(date);
     // search index
     let index = 0;
     for (let idx = 0; idx < this.lstDate.length; idx += 1) {

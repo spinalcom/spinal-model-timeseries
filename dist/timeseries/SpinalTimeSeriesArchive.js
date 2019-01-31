@@ -138,6 +138,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
             }
         }
         const value = new SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
+        value.dateDay.set(date);
         // search index
         let index = 0;
         for (let idx = 0; idx < this.lstDate.length; idx += 1) {
