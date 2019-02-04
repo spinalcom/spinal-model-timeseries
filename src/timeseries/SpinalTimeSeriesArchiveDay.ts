@@ -81,7 +81,7 @@ export class SpinalTimeSeriesArchiveDay extends Model {
     this.add_attr({
       lstDate: new TypedArray_Float64(),
       lstValue: new TypedArray_Float64(),
-      dateDay: new Date().setHours(0, 0, 0, 0),
+      dateDay: new Date().setUTCHours(0, 0, 0, 0),
       length: 0,
     });
     this.lstDate.resize([initialBlockSize]);
@@ -106,7 +106,7 @@ export class SpinalTimeSeriesArchiveDay extends Model {
    */
   insert(data: number, date: number|string|Date): boolean {
     const targetDate = new Date(date).getTime();
-    const maxDate = new Date(this.dateDay.get()).setHours(23, 59, 59, 999);
+    const maxDate = new Date(this.dateDay.get()).setUTCHours(23, 59, 59, 999);
     if (this.dateDay.get() <= targetDate && targetDate <= maxDate) {
       if (this.lstDate.size(0) <= this.length.get()) this.addBufferSizeLength();
       let index = 0;

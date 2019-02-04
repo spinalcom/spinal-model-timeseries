@@ -230,8 +230,8 @@ class SpinalTimeSeries extends Model {
   public async getDataFromYesterday()
     : Promise<AsyncIterableIterator<SpinalDateValue>> {
     const archive = await this.getArchive();
-    const end = new Date().setHours(0, 0, 0, -1);
-    const start = new Date(end).setHours(0, 0, 0, 0);
+    const end = new Date().setUTCHours(0, 0, 0, -1);
+    const start = new Date(end).setUTCHours(0, 0, 0, 0);
     return archive.getFromIntervalTimeGen(start, end);
   }
 
@@ -255,7 +255,7 @@ class SpinalTimeSeries extends Model {
     const archive = await this.getArchive();
     const end = Date.now();
     const start = new Date();
-    start.setHours(start.getHours() - numberOfHours);
+    start.setUTCHours(start.getUTCHours() - numberOfHours);
     return archive.getFromIntervalTimeGen(start, end);
   }
   /**

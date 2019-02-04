@@ -202,8 +202,8 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
     getDataFromYesterday() {
         return __awaiter(this, void 0, void 0, function* () {
             const archive = yield this.getArchive();
-            const end = new Date().setHours(0, 0, 0, -1);
-            const start = new Date(end).setHours(0, 0, 0, 0);
+            const end = new Date().setUTCHours(0, 0, 0, -1);
+            const start = new Date(end).setUTCHours(0, 0, 0, 0);
             return archive.getFromIntervalTimeGen(start, end);
         });
     }
@@ -225,7 +225,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
             const archive = yield this.getArchive();
             const end = Date.now();
             const start = new Date();
-            start.setHours(start.getHours() - numberOfHours);
+            start.setUTCHours(start.getUTCHours() - numberOfHours);
             return archive.getFromIntervalTimeGen(start, end);
         });
     }

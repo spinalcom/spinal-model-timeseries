@@ -40,7 +40,7 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
         this.add_attr({
             lstDate: new spinal_core_connectorjs_type_1.TypedArray_Float64(),
             lstValue: new spinal_core_connectorjs_type_1.TypedArray_Float64(),
-            dateDay: new Date().setHours(0, 0, 0, 0),
+            dateDay: new Date().setUTCHours(0, 0, 0, 0),
             length: 0,
         });
         this.lstDate.resize([initialBlockSize]);
@@ -65,7 +65,7 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
      */
     insert(data, date) {
         const targetDate = new Date(date).getTime();
-        const maxDate = new Date(this.dateDay.get()).setHours(23, 59, 59, 999);
+        const maxDate = new Date(this.dateDay.get()).setUTCHours(23, 59, 59, 999);
         if (this.dateDay.get() <= targetDate && targetDate <= maxDate) {
             if (this.lstDate.size(0) <= this.length.get())
                 this.addBufferSizeLength();

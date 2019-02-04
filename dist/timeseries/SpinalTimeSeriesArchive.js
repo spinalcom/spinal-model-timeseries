@@ -77,7 +77,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     static normalizeDate(date) {
-        return new Date(date).setHours(0, 0, 0, 0);
+        return new Date(date).setUTCHours(0, 0, 0, 0);
     }
     loadPtr(ptr) {
         if (typeof ptr.data.model !== 'undefined') {

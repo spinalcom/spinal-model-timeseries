@@ -68,7 +68,7 @@ class SpinalTimeSeriesArchive extends Model {
    * @memberof SpinalTimeSeriesArchive
    */
   public static normalizeDate(date: number | string | Date) : number {
-    return new Date(date).setHours(0, 0, 0, 0);
+    return new Date(date).setUTCHours(0, 0, 0, 0);
   }
 
   loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>)
