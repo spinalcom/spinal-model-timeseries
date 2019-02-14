@@ -72,6 +72,10 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
             let index = 0;
             for (; index < this.length.get(); index += 1) {
                 const element = this.lstDate.get(index);
+                if (element === targetDate) { // check exist
+                    this.lstValue.set_val([index], data);
+                    return true;
+                }
                 if (element > targetDate)
                     break;
             }

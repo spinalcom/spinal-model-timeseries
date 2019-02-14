@@ -92,10 +92,10 @@ class SpinalServiceTimeseries {
      * @memberof SpinalServiceTimeseries
      */
     getOrCreateTimeSeries(endpointNodeId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.timeSeriesDictionnary.has(endpointNodeId)) {
-                return this.timeSeriesDictionnary.get(endpointNodeId);
-            }
+        if (this.timeSeriesDictionnary.has(endpointNodeId)) {
+            return this.timeSeriesDictionnary.get(endpointNodeId);
+        }
+        const promise = new Promise(() => __awaiter(this, void 0, void 0, function* () {
             const children = yield spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(endpointNodeId, [SpinalTimeSeries_1.SpinalTimeSeries.relationName]);
             let timeSeriesProm;
             if (children.length === 0) {
@@ -110,9 +110,10 @@ class SpinalServiceTimeseries {
             else {
                 timeSeriesProm = children[0].element.load();
             }
-            this.timeSeriesDictionnary.set(endpointNodeId, timeSeriesProm);
             return timeSeriesProm;
-        });
+        }));
+        this.timeSeriesDictionnary.set(endpointNodeId, promise);
+        return promise;
     }
     /**
      * @param {SpinalTimeSeries} timeseries

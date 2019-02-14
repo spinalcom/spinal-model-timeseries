@@ -112,6 +112,10 @@ export class SpinalTimeSeriesArchiveDay extends Model {
       let index = 0;
       for (; index < this.length.get(); index += 1) {
         const element = this.lstDate.get(index);
+        if (element === targetDate) {      // check exist
+          this.lstValue.set_val([index], data);
+          return true;
+        }
         if (element > targetDate) break;
       }
       if (index === this.length.get()) {
@@ -119,7 +123,6 @@ export class SpinalTimeSeriesArchiveDay extends Model {
         this.lstValue.set_val(this.length.get(), data);
         this.length.set(this.length.get() + 1);
       } else {
-
         for (let idx = this.length.get() - 1; idx >= index; idx -= 1) {
           this.lstDate.set_val([idx + 1], this.lstDate.get(idx));
           this.lstValue.set_val([idx + 1], this.lstValue.get(idx));

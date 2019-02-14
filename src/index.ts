@@ -92,29 +92,35 @@ class SpinalServiceTimeseries{
    * @returns {Promise<SpinalTimeSeries>}
    * @memberof SpinalServiceTimeseries
    */
-  async getOrCreateTimeSeries(endpointNodeId: EndpointId): Promise<SpinalTimeSeries> {
+  getOrCreateTimeSeries(endpointNodeId: EndpointId): Promise<SpinalTimeSeries> {
     if (this.timeSeriesDictionnary.has(endpointNodeId)) {
       return this.timeSeriesDictionnary.get(endpointNodeId);
     }
-    const children =
-      await SpinalGraphService.getChildren(endpointNodeId, [SpinalTimeSeries.relationName]);
-    let timeSeriesProm: Promise<SpinalTimeSeries>;
-    if (children.length === 0) {
-      // create element
-      const timeSeries = new SpinalTimeSeries();
-      timeSeriesProm = Promise.resolve(timeSeries);
-      // create node
-      const node = SpinalGraphService.createNode({ timeSeriesId: timeSeries.id.get() }, timeSeries);
-      // push node to parent
-      await SpinalGraphService.addChild(endpointNodeId, node,
-                                        SpinalTimeSeries.relationName,
-                                        SPINAL_RELATION_PTR_LST_TYPE);
+    const promise: Promise<SpinalTimeSeries> = new Promise(async () => {
+      const children =
+        await SpinalGraphService.getChildren(endpointNodeId, [SpinalTimeSeries.relationName]);
+      let timeSeriesProm: Promise<SpinalTimeSeries>;
+      if (children.length === 0) {
+        // create element
+        const timeSeries = new SpinalTimeSeries();
+        timeSeriesProm = Promise.resolve(timeSeries);
+        // create node
+        const node = SpinalGraphService.createNode(
+          { timeSeriesId: timeSeries.id.get() }, timeSeries);
+        // push node to parent
+        await SpinalGraphService.addChild(endpointNodeId, node,
+                                          SpinalTimeSeries.relationName,
+                                          SPINAL_RELATION_PTR_LST_TYPE);
 
-    } else {
-      timeSeriesProm = children[0].element.load();
-    }
-    this.timeSeriesDictionnary.set(endpointNodeId, timeSeriesProm);
-    return timeSeriesProm;
+      } else {
+        timeSeriesProm = children[0].element.load();
+      }
+      return timeSeriesProm;
+
+    });
+    this.timeSeriesDictionnary.set(endpointNodeId, promise);
+
+    return promise;
   }
 
   /**

@@ -53,5 +53,12 @@ describe('SpinalTimeSeriesArchive', () => {
       await instanceTest.getTodayArchive();
       assert(instanceTest.getDates().length === 2);
     });
+
+    it('test async getOrCreateArchiveAtDate', async () => {
+      const test = [instanceTest.getTodayArchive(), instanceTest.getTodayArchive()];
+      const res = await Promise.all(test);
+      assert(res[0].model_id === res[1].model_id);
+    });
+
   });
 });

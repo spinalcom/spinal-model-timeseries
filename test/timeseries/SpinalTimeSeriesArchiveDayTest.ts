@@ -9,7 +9,7 @@ import * as assert from 'assert';
 import * as tk from 'timekeeper';
 tk.freeze(1546532599592);
 
-const todayDate = new Date().setHours(0, 0, 0, 0);
+const todayDate = new Date().setUTCHours(0, 0, 0, 0);
 const testArray = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const isFloat64ArraySorted = (array: Float64Array): number => {
   return array.every((value, index) => !index || (value >= array[index - 1]))
@@ -58,6 +58,13 @@ describe('SpinalTimeSeriesArchiveDay', () => {
       }
       assert(instanceTest.getActualBufferSize() === 32);
     });
+
+    it('push to an existing date should just edit it',  () => {
+      instanceTest.insert(42, Date.now() + 1);
+      const data = instanceTest.get(9);
+      assert(data.value === 42);
+    });
+
     it('insert for an otherday does return false', () => {
       const res = instanceTest.insert(42, Date.now() + 100000000000000000);
       assert(res === false);
@@ -70,7 +77,9 @@ describe('SpinalTimeSeriesArchiveDay', () => {
       instanceGet = instanceTest.get();
       assert(instanceGet.dateDay === todayDate);
       const testValue = Float64Array.from(testArray.concat(testArray));
+      testValue[9] = 42;
       assert(instanceGet.value.join() === testValue.join());
+
     });
     it('insert order', () => {
       instanceGet = instanceTest.get();
