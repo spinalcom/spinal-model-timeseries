@@ -96,7 +96,7 @@ class SpinalServiceTimeseries{
     if (this.timeSeriesDictionnary.has(endpointNodeId)) {
       return this.timeSeriesDictionnary.get(endpointNodeId);
     }
-    const promise: Promise<SpinalTimeSeries> = new Promise(async () => {
+    const promise: Promise<SpinalTimeSeries> = new Promise(async (resolve) => {
       const children =
         await SpinalGraphService.getChildren(endpointNodeId, [SpinalTimeSeries.relationName]);
       let timeSeriesProm: Promise<SpinalTimeSeries>;
@@ -115,6 +115,7 @@ class SpinalServiceTimeseries{
       } else {
         timeSeriesProm = children[0].element.load();
       }
+      resolve(timeSeriesProm);
       return timeSeriesProm;
 
     });

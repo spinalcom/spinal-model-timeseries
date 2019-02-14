@@ -95,7 +95,7 @@ class SpinalServiceTimeseries {
         if (this.timeSeriesDictionnary.has(endpointNodeId)) {
             return this.timeSeriesDictionnary.get(endpointNodeId);
         }
-        const promise = new Promise(() => __awaiter(this, void 0, void 0, function* () {
+        const promise = new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
             const children = yield spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(endpointNodeId, [SpinalTimeSeries_1.SpinalTimeSeries.relationName]);
             let timeSeriesProm;
             if (children.length === 0) {
@@ -110,6 +110,7 @@ class SpinalServiceTimeseries {
             else {
                 timeSeriesProm = children[0].element.load();
             }
+            resolve(timeSeriesProm);
             return timeSeriesProm;
         }));
         this.timeSeriesDictionnary.set(endpointNodeId, promise);
