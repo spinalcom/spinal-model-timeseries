@@ -69,6 +69,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
             lstItem: [],
         });
         this.itemLoadedDictionary = new Map;
+        this.loadPtrDictionary = new Map;
     }
     /**
      * @static
@@ -80,20 +81,32 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         return new Date(date).setUTCHours(0, 0, 0, 0);
     }
     loadPtr(ptr) {
+        if (typeof ptr.data.value !== 'undefined' &&
+            this.loadPtrDictionary.has(ptr.data.value)) {
+            return this.loadPtrDictionary.get(ptr.data.value);
+        }
         if (typeof ptr.data.model !== 'undefined') {
-            return Promise.resolve(ptr.data.model);
+            const res = Promise.resolve(ptr.data.model);
+            if (ptr.data.value) {
+                this.loadPtrDictionary.set(ptr.data.value, res);
+            }
+            return res;
         }
         if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
             return Promise.reject('Load Ptr to 0');
         }
         if (typeof spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value] !== 'undefined') {
-            return Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value]);
+            const res = Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value]);
+            this.loadPtrDictionary.set(ptr.data.value, res);
+            return Promise.resolve(res);
         }
-        return new Promise((resolve) => {
+        const res = new Promise((resolve) => {
             ptr.load((element) => {
                 resolve(element);
             });
         });
+        this.loadPtrDictionary.set(ptr.data.value, res);
+        return res;
     }
     /**
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
@@ -121,9 +134,9 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         return prom;
     }
     /**
-   * @returns {Promise<SpinalTimeSeriesArchiveDay>}
-   * @memberof SpinalTimeSeriesArchive
-   */
+     * @returns {Promise<SpinalTimeSeriesArchiveDay>}
+     * @memberof SpinalTimeSeriesArchive
+     */
     getOrCreateArchiveAtDate(atDate) {
         const date = SpinalTimeSeriesArchive.normalizeDate(atDate);
         const spinalTimeSeriesArchiveDay = this.itemLoadedDictionary.get(date);

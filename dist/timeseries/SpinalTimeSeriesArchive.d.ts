@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { Model } from 'spinal-core-connectorjs_type';
-import { SpinalTimeSeriesArchiveDay, SpinalDateValue } from './SpinalTimeSeriesArchiveDay';
+import { SpinalDateValue, SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
 /**
  * @class SpinalTimeSeriesArchive
  * @extends {Model}
@@ -10,6 +10,7 @@ declare class SpinalTimeSeriesArchive extends Model {
     private lstItem;
     initialBlockSize: spinal.Val;
     private itemLoadedDictionary;
+    private loadPtrDictionary;
     /**
      *Creates an instance of SpinalTimeSeriesArchive.
      * @param {number} [initialBlockSize=50]
@@ -30,9 +31,9 @@ declare class SpinalTimeSeriesArchive extends Model {
      */
     getTodayArchive(): Promise<SpinalTimeSeriesArchiveDay>;
     /**
-   * @returns {Promise<SpinalTimeSeriesArchiveDay>}
-   * @memberof SpinalTimeSeriesArchive
-   */
+     * @returns {Promise<SpinalTimeSeriesArchiveDay>}
+     * @memberof SpinalTimeSeriesArchive
+     */
     getOrCreateArchiveAtDate(atDate: number | string | Date): Promise<SpinalTimeSeriesArchiveDay>;
     /**
      * @param {(number|string)} [start=0]
