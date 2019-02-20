@@ -53,10 +53,10 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         super();
         this.archiveProm = null;
         this.currentProm = null;
+        this.loadPtrDictionary = new Map;
         if (spinal_core_connectorjs_type_1.FileSystem._sig_server === false)
             return;
         const archive = new SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive();
-        this.loadPtrDictionary = new Map;
         this.archiveProm = Promise.resolve(archive);
         this.add_attr({
             id: genUID_1.genUID('SpinalTimeSeries'),

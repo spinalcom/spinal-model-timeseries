@@ -68,10 +68,10 @@ class SpinalTimeSeries extends Model {
     super();
     this.archiveProm = null;
     this.currentProm = null;
+    this.loadPtrDictionary = new Map;
     if (FileSystem._sig_server === false) return;
 
     const archive = new SpinalTimeSeriesArchive();
-    this.loadPtrDictionary = new Map;
     this.archiveProm = Promise.resolve(archive);
 
     this.add_attr({
