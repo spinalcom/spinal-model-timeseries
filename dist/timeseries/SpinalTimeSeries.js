@@ -56,6 +56,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         if (spinal_core_connectorjs_type_1.FileSystem._sig_server === false)
             return;
         const archive = new SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive();
+        this.loadPtrDictionary = new Map;
         this.archiveProm = Promise.resolve(archive);
         this.add_attr({
             id: genUID_1.genUID('SpinalTimeSeries'),
@@ -160,20 +161,32 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
      * @memberof SpinalTimeSeries
      */
     loadPtr(ptr) {
+        if (typeof ptr.data.value !== 'undefined' &&
+            this.loadPtrDictionary.has(ptr.data.value)) {
+            return this.loadPtrDictionary.get(ptr.data.value);
+        }
         if (typeof ptr.data.model !== 'undefined') {
-            return Promise.resolve(ptr.data.model);
+            const res = Promise.resolve(ptr.data.model);
+            if (ptr.data.value) {
+                this.loadPtrDictionary.set(ptr.data.value, res);
+            }
+            return res;
         }
         if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
             return Promise.reject('Load Ptr to 0');
         }
         if (typeof spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value] !== 'undefined') {
-            return Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value]);
+            const res = Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value]);
+            this.loadPtrDictionary.set(ptr.data.value, res);
+            return Promise.resolve(res);
         }
-        return new Promise((resolve) => {
+        const res = new Promise((resolve) => {
             ptr.load((element) => {
                 resolve(element);
             });
         });
+        this.loadPtrDictionary.set(ptr.data.value, res);
+        return res;
     }
     /**
      * @returns {Promise<SpinalTimeSeriesArchive>}

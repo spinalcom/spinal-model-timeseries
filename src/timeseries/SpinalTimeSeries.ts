@@ -57,6 +57,8 @@ class SpinalTimeSeries extends Model {
 
   private archiveProm: Promise<SpinalTimeSeriesArchive>;
   private currentProm: Promise<SpinalTimeSeriesArchiveDay>;
+  private loadPtrDictionary: Map<number,
+    Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>>;
 
   /**
    *Creates an instance of SpinalTimeSeries.
@@ -69,6 +71,7 @@ class SpinalTimeSeries extends Model {
     if (FileSystem._sig_server === false) return;
 
     const archive = new SpinalTimeSeriesArchive();
+    this.loadPtrDictionary = new Map;
     this.archiveProm = Promise.resolve(archive);
 
     this.add_attr({
@@ -186,21 +189,38 @@ class SpinalTimeSeries extends Model {
    */
   loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)
   : Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive> {
+    if (typeof ptr.data.value !== 'undefined' &&
+        this.loadPtrDictionary.has(ptr.data.value)) {
+      return this.loadPtrDictionary.get(ptr.data.value);
+    }
+
     if (typeof ptr.data.model !== 'undefined') {
-      return Promise.resolve(ptr.data.model);
-    }    if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
+      const res = Promise.resolve(ptr.data.model);
+      if (ptr.data.value) {
+        this.loadPtrDictionary.set(ptr.data.value, res);
+      }
+      return res;
+    }
+
+    if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
       return Promise.reject('Load Ptr to 0');
     }
+
     if (typeof FileSystem._objects[ptr.data.value] !== 'undefined') {
-      return Promise.resolve(
-        <SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>FileSystem._objects[ptr.data.value],
-        );
+      const res = Promise.resolve(
+          <SpinalTimeSeriesArchiveDay>FileSystem._objects[ptr.data.value]);
+      this.loadPtrDictionary.set(ptr.data.value, res);
+      return Promise.resolve(res);
     }
-    return new Promise((resolve) => {
-      ptr.load((element) => {
-        resolve(element);
+    const res: Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive> =
+      new Promise((resolve) => {
+        ptr.load((element) => {
+          resolve(element);
+        });
       });
-    });
+    this.loadPtrDictionary.set(ptr.data.value, res);
+    return res;
+
   }
 
   /**

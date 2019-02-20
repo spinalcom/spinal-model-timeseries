@@ -27,6 +27,7 @@ declare class SpinalTimeSeries extends Model {
     archive: spinal.Ptr<SpinalTimeSeriesArchive>;
     private archiveProm;
     private currentProm;
+    private loadPtrDictionary;
     /**
      *Creates an instance of SpinalTimeSeries.
      * @memberof SpinalTimeSeries
