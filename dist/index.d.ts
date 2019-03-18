@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { SpinalTimeSeries, SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay, SpinalDateValue, SpinalDateValueArray } from './timeseries/SpinalTimeSeries';
 declare type EndpointId = string;
 /**
