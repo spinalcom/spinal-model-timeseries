@@ -16,12 +16,12 @@ export interface SpinalDateValue {
  */
 export interface SpinalDateValueArray {
     dateDay: number;
-    date: Float64Array;
-    value: Float64Array;
+    date: Int32Array;
+    value: Float32Array;
 }
 /**
- * @property {spinal.TypedArray_Float64} lstDate
- * @property {spinal.TypedArray_Float64} lstValue
+ * @property {spinal.TypedArray_Int32} lstDate
+ * @property {spinal.TypedArray_Float32} lstValue
  * @property {spinal.Val} length
  * @property {spinal.Val} dateDay
  * @class SpinalTimeSeriesArchiveDay
@@ -30,13 +30,13 @@ export interface SpinalDateValueArray {
 export declare class SpinalTimeSeriesArchiveDay extends Model {
     /**
      * @private
-     * @type {spinal.TypedArray_Float64}
+     * @type {spinal.TypedArray_Float32}
      * @memberof SpinalTimeSeriesArchiveDay
      */
     private lstDate;
     /**
      * @private
-     * @type {spinal.TypedArray_Float64}
+     * @type {spinal.TypedArray_Float32}
      * @memberof SpinalTimeSeriesArchiveDay
      */
     private lstValue;

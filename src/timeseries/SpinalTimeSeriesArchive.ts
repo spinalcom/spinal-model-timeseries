@@ -37,7 +37,7 @@ class SpinalTimeSeriesArchive extends Model {
 
   // not synchronized
   private itemLoadedDictionary:
-      Map<number, Promise<SpinalTimeSeriesArchiveDay>>;
+    Map<number, Promise<SpinalTimeSeriesArchiveDay>>;
   private loadPtrDictionary: Map<number, Promise<SpinalTimeSeriesArchiveDay>>;
 
   /**
@@ -62,14 +62,14 @@ class SpinalTimeSeriesArchive extends Model {
    * @returns {number}
    * @memberof SpinalTimeSeriesArchive
    */
-  public static normalizeDate(date: number|string|Date): number {
+  public static normalizeDate(date: number | string | Date): number {
     return new Date(date).setUTCHours(0, 0, 0, 0);
   }
 
   loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>):
-      Promise<SpinalTimeSeriesArchiveDay> {
+    Promise<SpinalTimeSeriesArchiveDay> {
     if (typeof ptr.data.value !== 'undefined' &&
-        this.loadPtrDictionary.has(ptr.data.value)) {
+      this.loadPtrDictionary.has(ptr.data.value)) {
       return this.loadPtrDictionary.get(ptr.data.value);
     }
 
@@ -87,7 +87,7 @@ class SpinalTimeSeriesArchive extends Model {
 
     if (typeof FileSystem._objects[ptr.data.value] !== 'undefined') {
       const res = Promise.resolve(
-          <SpinalTimeSeriesArchiveDay>FileSystem._objects[ptr.data.value]);
+        <SpinalTimeSeriesArchiveDay>FileSystem._objects[ptr.data.value]);
       this.loadPtrDictionary.set(ptr.data.value, res);
       return Promise.resolve(res);
     }
@@ -132,8 +132,8 @@ class SpinalTimeSeriesArchive extends Model {
    * @returns {Promise<SpinalTimeSeriesArchiveDay>}
    * @memberof SpinalTimeSeriesArchive
    */
-  public getOrCreateArchiveAtDate(atDate: number|string|
-                                  Date): Promise<SpinalTimeSeriesArchiveDay> {
+  public getOrCreateArchiveAtDate(atDate: number | string |
+    Date): Promise<SpinalTimeSeriesArchiveDay> {
     const date = SpinalTimeSeriesArchive.normalizeDate(atDate);
     const spinalTimeSeriesArchiveDay = this.itemLoadedDictionary.get(date);
 
@@ -173,11 +173,11 @@ class SpinalTimeSeriesArchive extends Model {
    * @memberof SpinalTimeSeriesArchive
    */
   public async *getFromIntervalTimeGen(
-          start: number|string|Date = 0, end: number|string|Date = Date.now()):
-          AsyncIterableIterator<SpinalDateValue> {
+    start: number | string | Date = 0, end: number | string | Date = Date.now()):
+    AsyncIterableIterator<SpinalDateValue> {
     const normalizedStart = SpinalTimeSeriesArchive.normalizeDate(start);
     const normalizedEnd = (typeof end === 'number' || typeof end === 'string') ?
-        new Date(end).getTime() : end;
+      new Date(end).getTime() : end;
     for (let idx = 0; idx < this.lstDate.length; idx += 1) {
       const element = this.lstDate[idx].get();
       if (normalizedStart > element) continue;
@@ -209,8 +209,8 @@ class SpinalTimeSeriesArchive extends Model {
    * @memberof SpinalTimeSeriesArchive
    */
   public async getFromIntervalTime(
-      start: number|string|Date,
-      end: number|string|Date = Date.now()): Promise<SpinalDateValue[]> {
+    start: number | string | Date,
+    end: number | string | Date = Date.now()): Promise<SpinalDateValue[]> {
     const result = [];
     for await (const data of this.getFromIntervalTimeGen(start, end)) {
       result.push(data);
@@ -223,8 +223,8 @@ class SpinalTimeSeriesArchive extends Model {
    * @returns {Promise<SpinalTimeSeriesArchiveDay>}
    * @memberof SpinalTimeSeriesArchive
    */
-  public getArchiveAtDate(date: number|string|
-                          Date): Promise<SpinalTimeSeriesArchiveDay> {
+  public getArchiveAtDate(date: number | string |
+    Date): Promise<SpinalTimeSeriesArchiveDay> {
     const normalizedDate: number = SpinalTimeSeriesArchive.normalizeDate(date);
     if (this.itemLoadedDictionary.has(normalizedDate)) {
       return this.itemLoadedDictionary.get(normalizedDate);
@@ -233,16 +233,16 @@ class SpinalTimeSeriesArchive extends Model {
     if (idx < 0) return Promise.reject(new Error(`Date '${date}' not fond.`));
 
     const promise: Promise<SpinalTimeSeriesArchiveDay> =
-        new Promise((resolve) => {
-          const ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay> = this.lstItem[idx];
-          if (typeof ptr.data.model !== 'undefined') {
-            resolve(ptr.data.model);
-          } else {
-            ptr.load((element: SpinalTimeSeriesArchiveDay) => {
-              resolve(element);
-            });
-          }
-        });
+      new Promise((resolve) => {
+        const ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay> = this.lstItem[idx];
+        if (typeof ptr.data.model !== 'undefined') {
+          resolve(ptr.data.model);
+        } else {
+          ptr.load((element: SpinalTimeSeriesArchiveDay) => {
+            resolve(element);
+          });
+        }
+      });
     this.itemLoadedDictionary.set(normalizedDate, promise);
     return promise;
   }
@@ -260,7 +260,7 @@ class SpinalTimeSeriesArchive extends Model {
    * @returns {boolean}
    * @memberof SpinalTimeSeriesArchive
    */
-  public dateExist(date: number|string|Date): boolean {
+  public dateExist(date: number | string | Date): boolean {
     const normalizedDate: number = SpinalTimeSeriesArchive.normalizeDate(date);
     for (let idx = this.lstDate.length - 1; idx >= 0; idx -= 1) {
       if (this.lstDate[idx].get() === normalizedDate) return true;

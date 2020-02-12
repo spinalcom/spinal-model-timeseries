@@ -58,7 +58,7 @@ class SpinalTimeSeries extends Model {
   private archiveProm: Promise<SpinalTimeSeriesArchive>;
   private currentProm: Promise<SpinalTimeSeriesArchiveDay>;
   private loadPtrDictionary: Map<number,
-    Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>>;
+    Promise<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive>>;
 
   /**
    *Creates an instance of SpinalTimeSeries.
@@ -89,8 +89,8 @@ class SpinalTimeSeries extends Model {
    * @memberof SpinalTimeSeries
    */
   public async getFromIntervalTimeGen(
-    start: number|string|Date = 0,
-    end: number|string|Date = Date.now())
+    start: number | string | Date = 0,
+    end: number | string | Date = Date.now())
     : Promise<AsyncIterableIterator<SpinalDateValue>> {
     const archive = await this.getArchive();
     return archive.getFromIntervalTimeGen(start, end);
@@ -102,9 +102,9 @@ class SpinalTimeSeries extends Model {
    * @memberof SpinalTimeSeries
    */
   public async getFromIntervalTime(
-    start: number|string|Date = 0,
-    end: number|string|Date = Date.now(),
-    ): Promise<SpinalDateValue[]> {
+    start: number | string | Date = 0,
+    end: number | string | Date = Date.now(),
+  ): Promise<SpinalDateValue[]> {
     const archive = await this.getArchive();
     return archive.getFromIntervalTime(start, end);
   }
@@ -151,7 +151,7 @@ class SpinalTimeSeries extends Model {
    * @returns {Promise<void>}
    * @memberof SpinalTimeSeries
    */
-  async insert(value: number, date: number|string|Date): Promise<void> {
+  async insert(value: number, date: number | string | Date): Promise<void> {
     let currentDay: SpinalTimeSeriesArchiveDay;
     const archive = await this.getArchive();
     currentDay = await archive.getOrCreateArchiveAtDate(date);
@@ -174,23 +174,23 @@ class SpinalTimeSeries extends Model {
    * @memberof SpinalTimeSeries
    */
   loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>)
-  : Promise<SpinalTimeSeriesArchiveDay>;
+    : Promise<SpinalTimeSeriesArchiveDay>;
   /**
    * @param {spinal.Ptr<SpinalTimeSeriesArchive>} ptr
    * @returns {Promise<SpinalTimeSeriesArchive>}
    * @memberof SpinalTimeSeries
    */
   loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchive>)
-  : Promise<SpinalTimeSeriesArchive>;
+    : Promise<SpinalTimeSeriesArchive>;
   /**
    * @param {(spinal.Ptr<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)} ptr
    * @returns {(Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)}
    * @memberof SpinalTimeSeries
    */
-  loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)
-  : Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive> {
+  loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive>)
+    : Promise<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive> {
     if (typeof ptr.data.value !== 'undefined' &&
-        this.loadPtrDictionary.has(ptr.data.value)) {
+      this.loadPtrDictionary.has(ptr.data.value)) {
       return this.loadPtrDictionary.get(ptr.data.value);
     }
 
@@ -208,11 +208,11 @@ class SpinalTimeSeries extends Model {
 
     if (typeof FileSystem._objects[ptr.data.value] !== 'undefined') {
       const res = Promise.resolve(
-          <SpinalTimeSeriesArchiveDay>FileSystem._objects[ptr.data.value]);
+        <SpinalTimeSeriesArchiveDay>FileSystem._objects[ptr.data.value]);
       this.loadPtrDictionary.set(ptr.data.value, res);
       return Promise.resolve(res);
     }
-    const res: Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive> =
+    const res: Promise<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive> =
       new Promise((resolve) => {
         ptr.load((element) => {
           resolve(element);
@@ -261,7 +261,7 @@ class SpinalTimeSeries extends Model {
    * @memberof SpinalTimeSeries
    */
   public getDataFromLast24Hours()
-  : Promise<AsyncIterableIterator<SpinalDateValue>> {
+    : Promise<AsyncIterableIterator<SpinalDateValue>> {
     return this.getDataFromLastDays(1);
   }
 
@@ -271,7 +271,7 @@ class SpinalTimeSeries extends Model {
    * @memberof SpinalTimeSeries
    */
   public async getDataFromLastHours(numberOfHours: number = 1)
-  : Promise<AsyncIterableIterator<SpinalDateValue>> {
+    : Promise<AsyncIterableIterator<SpinalDateValue>> {
     const archive = await this.getArchive();
     const end = Date.now();
     const start = new Date();
@@ -284,7 +284,7 @@ class SpinalTimeSeries extends Model {
    * @memberof SpinalTimeSeries
    */
   public async getDataFromLastDays(numberOfDays: number = 1)
-  : Promise<AsyncIterableIterator<SpinalDateValue>> {
+    : Promise<AsyncIterableIterator<SpinalDateValue>> {
     const archive = await this.getArchive();
     const end = Date.now();
     const start = new Date();

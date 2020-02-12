@@ -15,7 +15,7 @@ type EndpointId = string;
 /**
  * @class SpinalServiceTimeseries
  */
-class SpinalServiceTimeseries{
+class SpinalServiceTimeseries {
   private timeSeriesDictionnary: Map<EndpointId, Promise<SpinalTimeSeries>>;
   /**
    *Creates an instance of SpinalServiceTimeseries.
@@ -31,8 +31,8 @@ class SpinalServiceTimeseries{
    * @returns {Promise<boolean>}
    * @memberof SpinalServiceTimeseries
    */
-  public async pushFromEndpoint(endpointNodeId: EndpointId, value: number|boolean)
-  : Promise<boolean> {
+  public async pushFromEndpoint(endpointNodeId: EndpointId, value: number | boolean)
+    : Promise<boolean> {
     try {
       const timeseries = await this.getOrCreateTimeSeries(endpointNodeId);
       let valueToPush = value;
@@ -54,9 +54,9 @@ class SpinalServiceTimeseries{
    * @memberof SpinalServiceTimeseries
    */
   public async insertFromEndpoint(endpointNodeId: EndpointId,
-                                  value: number|boolean,
-                                  date: number|string|Date,
-                                  ): Promise<boolean> {
+                                  value: number | boolean,
+                                  date: number | string | Date,
+  ): Promise<boolean> {
     try {
       const timeseries = await this.getOrCreateTimeSeries(endpointNodeId);
       let valueToPush = value;
@@ -139,7 +139,7 @@ class SpinalServiceTimeseries{
    * @memberof SpinalServiceTimeseries
    */
   getDataFromLast24Hours(timeseries: SpinalTimeSeries)
-  : Promise<AsyncIterableIterator<SpinalDateValue>> {
+    : Promise<AsyncIterableIterator<SpinalDateValue>> {
     return timeseries.getDataFromLast24Hours();
   }
 
@@ -150,7 +150,7 @@ class SpinalServiceTimeseries{
    * @memberof SpinalServiceTimeseries
    */
   getDataFromLastHours(timeseries: SpinalTimeSeries, numberOfHours: number = 1)
-  : Promise<AsyncIterableIterator<SpinalDateValue>> {
+    : Promise<AsyncIterableIterator<SpinalDateValue>> {
     return timeseries.getDataFromLastHours(numberOfHours);
   }
 
@@ -160,7 +160,7 @@ class SpinalServiceTimeseries{
    * @memberof SpinalServiceTimeseries
    */
   getDataFromYesterday(timeseries: SpinalTimeSeries)
-  : Promise<AsyncIterableIterator<SpinalDateValue>> {
+    : Promise<AsyncIterableIterator<SpinalDateValue>> {
     return timeseries.getDataFromYesterday();
   }
 
@@ -172,9 +172,9 @@ class SpinalServiceTimeseries{
    * @memberof SpinalServiceTimeseries
    */
   getFromIntervalTime(timeseries: SpinalTimeSeries,
-                      start: string|number|Date = 0,
-                      end: string|number|Date = Date.now())
-                      : Promise<SpinalDateValue[]> {
+                      start: string | number | Date = 0,
+                      end: string | number | Date = Date.now())
+    : Promise<SpinalDateValue[]> {
     return timeseries.getFromIntervalTime(start, end);
   }
 
@@ -186,9 +186,9 @@ class SpinalServiceTimeseries{
    * @memberof SpinalServiceTimeseries
    */
   getFromIntervalTimeGen(timeseries: SpinalTimeSeries,
-                         start: string|number|Date = 0,
-                         end: string|number|Date = Date.now())
-  : Promise<AsyncIterableIterator<SpinalDateValue>> {
+                         start: string | number | Date = 0,
+                         end: string | number | Date = Date.now())
+    : Promise<AsyncIterableIterator<SpinalDateValue>> {
     return timeseries.getFromIntervalTimeGen(start, end);
   }
 

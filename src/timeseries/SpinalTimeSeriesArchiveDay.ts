@@ -26,7 +26,8 @@ import {
   Model,
   FileSystem,
   spinalCore,
-  TypedArray_Float64,
+  TypedArray_Float32,
+  TypedArray_Int32,
 } from 'spinal-core-connectorjs_type';
 
 /**
@@ -41,19 +42,19 @@ export interface SpinalDateValue {
 
 /**
  * @property {number} dateDay
- * @property {Float64Array} date
- * @property {Float64Array} value
+ * @property {Int32Array} date
+ * @property {Float32Array} value
  * @interface SpinalDateValueArray
  */
 export interface SpinalDateValueArray {
   dateDay: number;
-  date: Float64Array;
-  value: Float64Array;
+  date: Int32Array;
+  value: Float32Array;
 }
 
 /**
- * @property {spinal.TypedArray_Float64} lstDate
- * @property {spinal.TypedArray_Float64} lstValue
+ * @property {spinal.TypedArray_Int32} lstDate
+ * @property {spinal.TypedArray_Float32} lstValue
  * @property {spinal.Val} length
  * @property {spinal.Val} dateDay
  * @class SpinalTimeSeriesArchiveDay
@@ -62,16 +63,16 @@ export interface SpinalDateValueArray {
 export class SpinalTimeSeriesArchiveDay extends Model {
   /**
    * @private
-   * @type {spinal.TypedArray_Float64}
+   * @type {spinal.TypedArray_Float32}
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  private lstDate: spinal.TypedArray_Float64;
+  private lstDate: spinal.TypedArray_Int32;
   /**
    * @private
-   * @type {spinal.TypedArray_Float64}
+   * @type {spinal.TypedArray_Float32}
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  private lstValue: spinal.TypedArray_Float64;
+  private lstValue: spinal.TypedArray_Float32;
   public length: spinal.Val;
   public dateDay: spinal.Val;
 
@@ -79,8 +80,8 @@ export class SpinalTimeSeriesArchiveDay extends Model {
     super();
     if (FileSystem._sig_server === false) return;
     this.add_attr({
-      lstDate: new TypedArray_Float64(),
-      lstValue: new TypedArray_Float64(),
+      lstDate: new TypedArray_Float32(),
+      lstValue: new TypedArray_Float32(),
       dateDay: new Date().setUTCHours(0, 0, 0, 0),
       length: 0,
     });
@@ -104,7 +105,7 @@ export class SpinalTimeSeriesArchiveDay extends Model {
    * @returns {boolean}
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  insert(data: number, date: number|string|Date): boolean {
+  insert(data: number, date: number | string | Date): boolean {
     const targetDate = new Date(date).getTime();
     const maxDate = new Date(this.dateDay.get()).setUTCHours(23, 59, 59, 999);
     if (this.dateDay.get() <= targetDate && targetDate <= maxDate) {
@@ -156,8 +157,8 @@ export class SpinalTimeSeriesArchiveDay extends Model {
     if (typeof index === 'number') return this.at(index);
     return {
       dateDay: this.dateDay.get(),
-      date : this.lstDate.get().subarray(0, this.length.get()),
-      value : this.lstValue.get().subarray(0, this.length.get()),
+      date: this.lstDate.get().subarray(0, this.length.get()),
+      value: this.lstValue.get().subarray(0, this.length.get()),
     };
   }
   /**
@@ -171,8 +172,8 @@ export class SpinalTimeSeriesArchiveDay extends Model {
       return undefined;
     }
     return {
-      date : this.lstDate.get(index),
-      value : this.lstValue.get(index),
+      date: this.lstDate.get(index),
+      value: this.lstValue.get(index),
     };
   }
 

@@ -25,8 +25,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
 /**
- * @property {spinal.TypedArray_Float64} lstDate
- * @property {spinal.TypedArray_Float64} lstValue
+ * @property {spinal.TypedArray_Int32} lstDate
+ * @property {spinal.TypedArray_Float32} lstValue
  * @property {spinal.Val} length
  * @property {spinal.Val} dateDay
  * @class SpinalTimeSeriesArchiveDay
@@ -38,8 +38,8 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
         if (spinal_core_connectorjs_type_1.FileSystem._sig_server === false)
             return;
         this.add_attr({
-            lstDate: new spinal_core_connectorjs_type_1.TypedArray_Float64(),
-            lstValue: new spinal_core_connectorjs_type_1.TypedArray_Float64(),
+            lstDate: new spinal_core_connectorjs_type_1.TypedArray_Float32(),
+            lstValue: new spinal_core_connectorjs_type_1.TypedArray_Float32(),
             dateDay: new Date().setUTCHours(0, 0, 0, 0),
             length: 0,
         });
