@@ -1,6 +1,7 @@
-import { Model } from 'spinal-core-connectorjs_type';
-import { SpinalTimeSeriesArchive } from './SpinalTimeSeriesArchive';
-import { SpinalTimeSeriesArchiveDay, SpinalDateValue, SpinalDateValueArray } from './SpinalTimeSeriesArchiveDay';
+import { Model } from "spinal-core-connectorjs_type";
+import { SpinalTimeSeriesArchive } from "./SpinalTimeSeriesArchive";
+import { SpinalTimeSeriesArchiveDay } from "./SpinalTimeSeriesArchiveDay";
+import { SpinalDateValue, SpinalDateValueArray } from "./SpinalTimeSeriesData";
 /**
  * @class SpinalTimeSeries
  * @property {spinal.Str} id
@@ -116,4 +117,4 @@ declare class SpinalTimeSeries extends Model {
     getDataFromLastDays(numberOfDays?: number): Promise<AsyncIterableIterator<SpinalDateValue>>;
 }
 export default SpinalTimeSeries;
-export { SpinalTimeSeries, SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay, SpinalDateValue, SpinalDateValueArray, };
+export { SpinalTimeSeries, SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay, SpinalDateValue, SpinalDateValueArray };

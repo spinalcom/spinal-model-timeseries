@@ -1,5 +1,6 @@
-import { Model } from 'spinal-core-connectorjs_type';
-import { SpinalDateValue, SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
+import { Model } from "spinal-core-connectorjs_type";
+import { SpinalTimeSeriesArchiveDay } from "./SpinalTimeSeriesArchiveDay";
+import { SpinalDateValue } from "./SpinalTimeSeriesData";
 /**
  * @class SpinalTimeSeriesArchive
  * @extends {Model}

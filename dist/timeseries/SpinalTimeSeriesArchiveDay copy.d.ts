@@ -1,5 +1,5 @@
 import { Model } from "spinal-core-connectorjs_type";
-import { SpinalDateValue, SpinalDateValueArray, SpinalTimeSeriesData } from "./SpinalTimeSeriesData";
+import { SpinalDateValue, SpinalDateValueArray } from "./SpinalTimeSeriesData";
 /**
  * @property {spinal.TypedArray_Float64} lstDate
  * @property {spinal.TypedArray_Float64} lstValue
@@ -9,15 +9,33 @@ import { SpinalDateValue, SpinalDateValueArray, SpinalTimeSeriesData } from "./S
  * @extends {Model}
  */
 export declare class SpinalTimeSeriesArchiveDay extends Model {
-    data: spinal.Lst<SpinalTimeSeriesData>;
-    dateDay: spinal.Val;
-    private blockSize;
-    constructor(initialBlockSize?: number);
     /**
-     * @param {number} value
+     * @private
+     * @type {spinal.TypedArray_Float64}
      * @memberof SpinalTimeSeriesArchiveDay
      */
-    push(value: number): Promise<void>;
+    private lstDate;
+    /**
+     * @private
+     * @type {spinal.TypedArray_Float64}
+     * @memberof SpinalTimeSeriesArchiveDay
+     */
+    private lstValue;
+    length: spinal.Val;
+    dateDay: spinal.Val;
+    constructor(initialBlockSize?: number);
+    /**
+     * @param {number} data
+     * @memberof SpinalTimeSeriesArchiveDay
+     */
+    push(data: number): void;
+    /**
+     * @param {number} data
+     * @param {(number|string|Date)} date
+     * @returns {boolean}
+     * @memberof SpinalTimeSeriesArchiveDay
+     */
+    insert(data: number, date: number | string | Date): boolean;
     /**
      * @param {number} index
      * @returns {SpinalDateValue}
@@ -36,7 +54,15 @@ export declare class SpinalTimeSeriesArchiveDay extends Model {
      * @memberof SpinalTimeSeriesArchiveDay
      */
     at(index: number): SpinalDateValue;
-    getFromIntervalTimeGen(start?: number | string | Date, end?: number | string | Date): AsyncGenerator<any, void, unknown>;
-    private _getItemDate;
+    /**
+     * For Tests - returns the TypedArrays' size
+     * @memberof SpinalTimeSeriesArchiveDay
+     */
+    getActualBufferSize(): number;
+    /**
+     * @private
+     * @memberof SpinalTimeSeriesArchiveDay
+     */
+    private addBufferSizeLength;
 }
 export default SpinalTimeSeriesArchiveDay;

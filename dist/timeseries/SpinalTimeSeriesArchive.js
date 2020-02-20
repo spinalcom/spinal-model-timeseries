@@ -1,13 +1,21 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
 var __await = (this && this.__await) || function (v) { return this instanceof __await ? (this.v = v, this) : new __await(v); }
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _arguments, generator) {
     if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
     var g = generator.apply(thisArg, _arguments || []), i, q = [];
@@ -18,13 +26,6 @@ var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _ar
     function fulfill(value) { resume("next", value); }
     function reject(value) { resume("throw", value); }
     function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
-};
-var __asyncValues = (this && this.__asyncValues) || function (o) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator], i;
-    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /*
@@ -66,10 +67,10 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         super({
             initialBlockSize,
             lstDate: [],
-            lstItem: [],
+            lstItem: []
         });
-        this.itemLoadedDictionary = new Map;
-        this.loadPtrDictionary = new Map;
+        this.itemLoadedDictionary = new Map();
+        this.loadPtrDictionary = new Map();
     }
     /**
      * @static
@@ -81,27 +82,27 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         return new Date(date).setUTCHours(0, 0, 0, 0);
     }
     loadPtr(ptr) {
-        if (typeof ptr.data.value !== 'undefined' &&
+        if (typeof ptr.data.value !== "undefined" &&
             this.loadPtrDictionary.has(ptr.data.value)) {
             return this.loadPtrDictionary.get(ptr.data.value);
         }
-        if (typeof ptr.data.model !== 'undefined') {
+        if (typeof ptr.data.model !== "undefined") {
             const res = Promise.resolve(ptr.data.model);
             if (ptr.data.value) {
                 this.loadPtrDictionary.set(ptr.data.value, res);
             }
             return res;
         }
-        if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
-            return Promise.reject('Load Ptr to 0');
+        if (typeof ptr.data.value !== "undefined" && ptr.data.value === 0) {
+            return Promise.reject("Load Ptr to 0");
         }
-        if (typeof spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value] !== 'undefined') {
+        if (typeof spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value] !== "undefined") {
             const res = Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value]);
             this.loadPtrDictionary.set(ptr.data.value, res);
             return Promise.resolve(res);
         }
-        const res = new Promise((resolve) => {
-            ptr.load((element) => {
+        const res = new Promise(resolve => {
+            ptr.load(element => {
                 resolve(element);
             });
         });
@@ -175,30 +176,46 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
      */
     getFromIntervalTimeGen(start = 0, end = Date.now()) {
         return __asyncGenerator(this, arguments, function* getFromIntervalTimeGen_1() {
+            var e_1, _a;
             const normalizedStart = SpinalTimeSeriesArchive.normalizeDate(start);
-            const normalizedEnd = (typeof end === 'number' || typeof end === 'string') ?
-                new Date(end).getTime() : end;
+            const normalizedEnd = typeof end === "number" || typeof end === "string"
+                ? new Date(end).getTime()
+                : end;
             for (let idx = 0; idx < this.lstDate.length; idx += 1) {
                 const element = this.lstDate[idx].get();
                 if (normalizedStart > element)
                     continue;
-                const archive = yield __await(this.getArchiveAtDate(element));
-                let index = 0;
-                const archiveLen = archive.length.get();
-                if (normalizedStart === element) {
-                    for (; index < archiveLen; index += 1) {
-                        const dateValue = archive.get(index);
-                        if (dateValue.date >= start) {
-                            break;
-                        }
+                const archiveDay = yield __await(this.getArchiveAtDate(element));
+                const gen = archiveDay.getFromIntervalTimeGen(normalizedStart, normalizedEnd);
+                try {
+                    for (var gen_1 = __asyncValues(gen), gen_1_1; gen_1_1 = yield __await(gen_1.next()), !gen_1_1.done;) {
+                        const res = gen_1_1.value;
+                        yield yield __await(res);
                     }
                 }
-                for (; index < archiveLen; index += 1) {
-                    const dateValue = archive.get(index);
-                    if (dateValue.date > normalizedEnd)
-                        return yield __await(void 0);
-                    yield yield __await(dateValue);
+                catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                finally {
+                    try {
+                        if (gen_1_1 && !gen_1_1.done && (_a = gen_1.return)) yield __await(_a.call(gen_1));
+                    }
+                    finally { if (e_1) throw e_1.error; }
                 }
+                // const archive = await this.getArchiveAtDate(element);
+                // let index = 0;
+                // const archiveLen = archive.length.get();
+                // if (normalizedStart === element) {
+                //   for (; index < archiveLen; index += 1) {
+                //     const dateValue = archive.get(index);
+                //     if (dateValue.date >= start) {
+                //       break;
+                //     }
+                //   }
+                // }
+                // for (; index < archiveLen; index += 1) {
+                //   const dateValue = archive.get(index);
+                //   if (dateValue.date > normalizedEnd) return;
+                //   yield dateValue;
+                // }
             }
         });
     }
@@ -210,8 +227,8 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getFromIntervalTime(start, end = Date.now()) {
+        var e_2, _a;
         return __awaiter(this, void 0, void 0, function* () {
-            var e_1, _a;
             const result = [];
             try {
                 for (var _b = __asyncValues(this.getFromIntervalTimeGen(start, end)), _c; _c = yield _b.next(), !_c.done;) {
@@ -219,12 +236,12 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
                     result.push(data);
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
             finally {
                 try {
                     if (_c && !_c.done && (_a = _b.return)) yield _a.call(_b);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_2) throw e_2.error; }
             }
             return result;
         });
@@ -241,10 +258,10 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         }
         const idx = this.lstDate.indexOf(normalizedDate);
         if (idx < 0)
-            return Promise.reject(new Error(`Date '${date}' not fond.`));
-        const promise = new Promise((resolve) => {
+            return Promise.reject(new Error(`Date '${date}' not found.`));
+        const promise = new Promise(resolve => {
             const ptr = this.lstItem[idx];
-            if (typeof ptr.data.model !== 'undefined') {
+            if (typeof ptr.data.model !== "undefined") {
                 resolve(ptr.data.model);
             }
             else {
