@@ -28,6 +28,7 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SpinalTimeSeriesArchive = void 0;
 /*
  * Copyright 2018 SpinalCom - www.spinalcom.com
  *
@@ -52,6 +53,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
+const loadPtr_1 = require("../utils/loadPtr");
 const SpinalTimeSeriesArchiveDay_1 = require("./SpinalTimeSeriesArchiveDay");
 /**
  * @class SpinalTimeSeriesArchive
@@ -71,8 +73,8 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
             lstItem: [],
             maxDay,
         });
-        this.itemLoadedDictionary = new Map;
-        this.loadPtrDictionary = new Map;
+        this.itemLoadedDictionary = new Map();
+        this.loadPtrDictionary = new Map();
     }
     /**
      * @static
@@ -82,34 +84,6 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
      */
     static normalizeDate(date) {
         return new Date(date).setUTCHours(0, 0, 0, 0);
-    }
-    loadPtr(ptr) {
-        if (typeof ptr.data.value !== 'undefined' &&
-            this.loadPtrDictionary.has(ptr.data.value)) {
-            return this.loadPtrDictionary.get(ptr.data.value);
-        }
-        if (typeof ptr.data.model !== 'undefined') {
-            const res = Promise.resolve(ptr.data.model);
-            if (ptr.data.value) {
-                this.loadPtrDictionary.set(ptr.data.value, res);
-            }
-            return res;
-        }
-        if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
-            return Promise.reject('Load Ptr to 0');
-        }
-        if (typeof spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value] !== 'undefined') {
-            const res = Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value]);
-            this.loadPtrDictionary.set(ptr.data.value, res);
-            return Promise.resolve(res);
-        }
-        const res = new Promise((resolve) => {
-            ptr.load((element) => {
-                resolve(element);
-            });
-        });
-        this.loadPtrDictionary.set(ptr.data.value, res);
-        return res;
     }
     /**
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
@@ -126,7 +100,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
             const element = this.lstDate[index];
             const ptr = this.lstItem[index];
             if (element.get() === date) {
-                return this.loadPtr(ptr);
+                return loadPtr_1.loadPtr(this.loadPtrDictionary, ptr);
             }
         }
         const value = new SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
@@ -150,7 +124,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
             const element = this.lstDate[index];
             const ptr = this.lstItem[index];
             if (element.get() === date) {
-                return this.loadPtr(ptr);
+                return loadPtr_1.loadPtr(this.loadPtrDictionary, ptr);
             }
         }
         const value = new SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
@@ -183,8 +157,9 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
     getFromIntervalTimeGen(start = 0, end = Date.now()) {
         return __asyncGenerator(this, arguments, function* getFromIntervalTimeGen_1() {
             const normalizedStart = SpinalTimeSeriesArchive.normalizeDate(start);
-            const normalizedEnd = (typeof end === 'number' || typeof end === 'string') ?
-                new Date(end).getTime() : end;
+            const normalizedEnd = typeof end === 'number' || typeof end === 'string'
+                ? new Date(end).getTime()
+                : end;
             for (let idx = 0; idx < this.lstDate.length; idx += 1) {
                 const element = this.lstDate[idx].get();
                 if (normalizedStart > element)
@@ -288,7 +263,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
             let lstDateToDelete = [];
             // let lstItemToDelete = [];
             const maxDayMS = this.maxDay.get() * 86400000;
-            const minDateMS = (new Date()).valueOf() - maxDayMS;
+            const minDateMS = new Date().valueOf() - maxDayMS;
             for (let index = 0; index < this.lstDate.length; index += 1) {
                 if (this.lstDate[index].get() <= minDateMS) {
                     lstDateToDelete.push(this.lstDate[index].get());

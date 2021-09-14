@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SpinalTimeSeriesArchiveDay = exports.SpinalTimeSeriesArchive = exports.SpinalTimeSeries = void 0;
 /*
  * Copyright 2018 SpinalCom - www.spinalcom.com
  *
@@ -34,11 +35,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
 const genUID_1 = require("../genUID");
+const loadPtr_1 = require("../utils/loadPtr");
 const SpinalTimeSeriesArchive_1 = require("./SpinalTimeSeriesArchive");
-exports.SpinalTimeSeriesArchive = SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive;
+Object.defineProperty(exports, "SpinalTimeSeriesArchive", { enumerable: true, get: function () { return SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive; } });
 const SpinalTimeSeriesArchiveDay_1 = require("./SpinalTimeSeriesArchiveDay");
-exports.SpinalTimeSeriesArchiveDay = SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay;
-console.log("fichier");
+Object.defineProperty(exports, "SpinalTimeSeriesArchiveDay", { enumerable: true, get: function () { return SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay; } });
 /**
  * @class SpinalTimeSeries
  * @property {spinal.Str} id
@@ -55,13 +56,13 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         super();
         this.archiveProm = null;
         this.currentProm = null;
-        this.loadPtrDictionary = new Map;
+        this.loadPtrDictionary = new Map();
         if (spinal_core_connectorjs_type_1.FileSystem._sig_server === false)
             return;
         const archive = new SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive();
         this.archiveProm = Promise.resolve(archive);
         this.add_attr({
-            id: genUID_1.genUID('SpinalTimeSeries'),
+            id: genUID_1.genUID(),
             archive: new spinal_core_connectorjs_type_1.Ptr(archive),
             currentArchive: new spinal_core_connectorjs_type_1.Ptr(0),
             currentData: 0,
@@ -160,39 +161,62 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
             return archive.getArchiveAtDate(date);
         });
     }
-    /**
-     * @param {(spinal.Ptr<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)} ptr
-     * @returns {(Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)}
-     * @memberof SpinalTimeSeries
-     */
-    loadPtr(ptr) {
-        if (typeof ptr.data.value !== 'undefined' &&
-            this.loadPtrDictionary.has(ptr.data.value)) {
-            return this.loadPtrDictionary.get(ptr.data.value);
-        }
-        if (typeof ptr.data.model !== 'undefined') {
-            const res = Promise.resolve(ptr.data.model);
-            if (ptr.data.value) {
-                this.loadPtrDictionary.set(ptr.data.value, res);
-            }
-            return res;
-        }
-        if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
-            return Promise.reject('Load Ptr to 0');
-        }
-        if (typeof spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value] !== 'undefined') {
-            const res = Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value]);
-            this.loadPtrDictionary.set(ptr.data.value, res);
-            return Promise.resolve(res);
-        }
-        const res = new Promise((resolve) => {
-            ptr.load((element) => {
-                resolve(element);
-            });
-        });
-        this.loadPtrDictionary.set(ptr.data.value, res);
-        return res;
-    }
+    // /**
+    //  * @param {spinal.Ptr<SpinalTimeSeriesArchiveDay>} ptr
+    //  * @returns {Promise<SpinalTimeSeriesArchiveDay>}
+    //  * @memberof SpinalTimeSeries
+    //  */
+    // loadPtr(
+    //   ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>
+    // ): Promise<SpinalTimeSeriesArchiveDay>;
+    // /**
+    //  * @param {spinal.Ptr<SpinalTimeSeriesArchive>} ptr
+    //  * @returns {Promise<SpinalTimeSeriesArchive>}
+    //  * @memberof SpinalTimeSeries
+    //  */
+    // loadPtr(
+    //   ptr: spinal.Ptr<SpinalTimeSeriesArchive>
+    // ): Promise<SpinalTimeSeriesArchive>;
+    // /**
+    //  * @param {(spinal.Ptr<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)} ptr
+    //  * @returns {(Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)}
+    //  * @memberof SpinalTimeSeries
+    //  */
+    // public loadPtr(
+    //   ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive>
+    // ): Promise<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive> {
+    //   if (
+    //     typeof ptr.data.value !== 'undefined' &&
+    //     this.loadPtrDictionary.has(ptr.data.value)
+    //   ) {
+    //     return this.loadPtrDictionary.get(ptr.data.value);
+    //   }
+    //   if (typeof ptr.data.model !== 'undefined') {
+    //     const res = Promise.resolve(ptr.data.model);
+    //     if (ptr.data.value) {
+    //       this.loadPtrDictionary.set(ptr.data.value, res);
+    //     }
+    //     return res;
+    //   }
+    //   if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
+    //     return Promise.reject('Load Ptr to 0');
+    //   }
+    //   if (typeof FileSystem._objects[ptr.data.value] !== 'undefined') {
+    //     const res = Promise.resolve(
+    //       <SpinalTimeSeriesArchiveDay>FileSystem._objects[ptr.data.value]
+    //     );
+    //     this.loadPtrDictionary.set(ptr.data.value, res);
+    //     return Promise.resolve(res);
+    //   }
+    //   const res: Promise<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive> =
+    //     new Promise((resolve) => {
+    //       ptr.load((element) => {
+    //         resolve(element);
+    //       });
+    //     });
+    //   this.loadPtrDictionary.set(ptr.data.value, res);
+    //   return res;
+    // }
     /**
      * @returns {Promise<SpinalTimeSeriesArchive>}
      * @memberof SpinalTimeSeries
@@ -200,7 +224,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
     getArchive() {
         if (this.archiveProm !== null)
             return this.archiveProm;
-        this.archiveProm = this.loadPtr(this.archive);
+        this.archiveProm = (loadPtr_1.loadPtr(this.loadPtrDictionary, this.archive));
         return this.archiveProm;
     }
     /**
@@ -210,7 +234,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
     getCurrentDay() {
         if (this.currentProm !== null)
             return this.currentProm;
-        this.currentProm = this.loadPtr(this.currentArchive);
+        this.currentProm = (loadPtr_1.loadPtr(this.loadPtrDictionary, this.currentArchive));
         return this.currentProm;
     }
     /**

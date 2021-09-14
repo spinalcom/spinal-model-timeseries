@@ -23,8 +23,8 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SpinalTimeSeriesArchiveDay = void 0;
 const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
-console.log("fichier");
 /**
  * @property {spinal.TypedArray_Float64} lstDate
  * @property {spinal.TypedArray_Float64} lstValue
@@ -73,7 +73,8 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
             let index = 0;
             for (; index < this.length.get(); index += 1) {
                 const element = this.lstDate.get(index);
-                if (element === targetDate) { // check exist
+                if (element === targetDate) {
+                    // check exist
                     this.lstValue.set_val([index], data);
                     return true;
                 }

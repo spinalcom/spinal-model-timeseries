@@ -25,7 +25,6 @@ declare class SpinalTimeSeriesArchive extends Model {
      * @memberof SpinalTimeSeriesArchive
      */
     static normalizeDate(date: number | string | Date): number;
-    loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>): Promise<SpinalTimeSeriesArchiveDay>;
     /**
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
      * @memberof SpinalTimeSeriesArchive

@@ -24,8 +24,8 @@ declare class SpinalTimeSeries extends Model {
     id: spinal.Str;
     currentArchive: spinal.Ptr<SpinalTimeSeriesArchiveDay>;
     archive: spinal.Ptr<SpinalTimeSeriesArchive>;
-    private archiveProm;
-    private currentProm;
+    archiveProm: Promise<SpinalTimeSeriesArchive>;
+    currentProm: Promise<SpinalTimeSeriesArchiveDay>;
     private loadPtrDictionary;
     /**
      *Creates an instance of SpinalTimeSeries.
@@ -69,18 +69,6 @@ declare class SpinalTimeSeries extends Model {
      * @memberof SpinalTimeSeries
      */
     getDataOfDay(date: number | string | Date): Promise<SpinalTimeSeriesArchiveDay>;
-    /**
-     * @param {spinal.Ptr<SpinalTimeSeriesArchiveDay>} ptr
-     * @returns {Promise<SpinalTimeSeriesArchiveDay>}
-     * @memberof SpinalTimeSeries
-     */
-    loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>): Promise<SpinalTimeSeriesArchiveDay>;
-    /**
-     * @param {spinal.Ptr<SpinalTimeSeriesArchive>} ptr
-     * @returns {Promise<SpinalTimeSeriesArchive>}
-     * @memberof SpinalTimeSeries
-     */
-    loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchive>): Promise<SpinalTimeSeriesArchive>;
     /**
      * @returns {Promise<SpinalTimeSeriesArchive>}
      * @memberof SpinalTimeSeries

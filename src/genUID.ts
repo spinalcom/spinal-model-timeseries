@@ -22,20 +22,19 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-console.log("fichier");
-
-
 function s4(): string {
-  return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+  return Math.floor((1 + Math.random()) * 0x10000)
+    .toString(16)
+    .substring(1);
 }
 
 /**
- * @param {string} constructor
  * @returns {string}
  */
-function genUID(constructor: string): string {
-  const res: string = `${constructor}-${s4() + s4()}-${s4()}-${s4()}-${s4()}-${
-      s4() + s4() + s4()}-${Date.now().toString(16)}`;
+function genUID(): string {
+  const res: string = `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${
+    s4() + s4()
+  }-${Date.now().toString(16)}`;
 
   return res;
 }

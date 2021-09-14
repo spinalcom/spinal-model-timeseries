@@ -23,16 +23,17 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-console.log("fichier");
+exports.genUID = void 0;
 function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
 }
 /**
- * @param {string} constructor
  * @returns {string}
  */
-function genUID(constructor) {
-    const res = `${constructor}-${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4() + s4() + s4()}-${Date.now().toString(16)}`;
+function genUID() {
+    const res = `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4() + s4()}-${Date.now().toString(16)}`;
     return res;
 }
 exports.genUID = genUID;

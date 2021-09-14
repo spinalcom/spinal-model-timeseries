@@ -32,12 +32,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SpinalTimeSeriesArchiveDay = exports.SpinalTimeSeriesArchive = exports.SpinalTimeSeries = exports.SpinalServiceTimeseries = void 0;
 const spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 const SpinalTimeSeries_1 = require("./timeseries/SpinalTimeSeries");
-exports.SpinalTimeSeries = SpinalTimeSeries_1.SpinalTimeSeries;
-exports.SpinalTimeSeriesArchive = SpinalTimeSeries_1.SpinalTimeSeriesArchive;
-exports.SpinalTimeSeriesArchiveDay = SpinalTimeSeries_1.SpinalTimeSeriesArchiveDay;
-console.log("fichier");
+Object.defineProperty(exports, "SpinalTimeSeries", { enumerable: true, get: function () { return SpinalTimeSeries_1.SpinalTimeSeries; } });
+Object.defineProperty(exports, "SpinalTimeSeriesArchive", { enumerable: true, get: function () { return SpinalTimeSeries_1.SpinalTimeSeriesArchive; } });
+Object.defineProperty(exports, "SpinalTimeSeriesArchiveDay", { enumerable: true, get: function () { return SpinalTimeSeries_1.SpinalTimeSeriesArchiveDay; } });
 /**
  * @class SpinalServiceTimeseries
  */
@@ -104,7 +104,9 @@ class SpinalServiceTimeseries {
             if (this.timeSeriesDictionnary.has(endpointNodeId)) {
                 return true;
             }
-            const children = yield spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(endpointNodeId, [SpinalTimeSeries_1.SpinalTimeSeries.relationName]);
+            const children = yield spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(endpointNodeId, [
+                SpinalTimeSeries_1.SpinalTimeSeries.relationName,
+            ]);
             if (children.length === 0) {
                 return false;
             }
@@ -121,7 +123,9 @@ class SpinalServiceTimeseries {
             return this.timeSeriesDictionnary.get(endpointNodeId);
         }
         const promise = new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-            const children = yield spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(endpointNodeId, [SpinalTimeSeries_1.SpinalTimeSeries.relationName]);
+            const children = yield spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(endpointNodeId, [
+                SpinalTimeSeries_1.SpinalTimeSeries.relationName,
+            ]);
             let timeSeriesProm;
             if (children.length === 0) {
                 // create element

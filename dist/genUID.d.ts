@@ -1,6 +1,5 @@
 /**
- * @param {string} constructor
  * @returns {string}
  */
-declare function genUID(constructor: string): string;
+declare function genUID(): string;
 export { genUID };

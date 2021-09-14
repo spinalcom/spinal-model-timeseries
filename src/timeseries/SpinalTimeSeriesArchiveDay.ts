@@ -29,9 +29,6 @@ import {
   TypedArray_Float64,
 } from 'spinal-core-connectorjs_type';
 
-console.log("fichier");
-
-
 /**
  * @property {number} date
  * @property {number} value
@@ -107,7 +104,7 @@ export class SpinalTimeSeriesArchiveDay extends Model {
    * @returns {boolean}
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  insert(data: number, date: number|string|Date): boolean {
+  insert(data: number, date: number | string | Date): boolean {
     const targetDate = new Date(date).getTime();
     const maxDate = new Date(this.dateDay.get()).setUTCHours(23, 59, 59, 999);
     if (this.dateDay.get() <= targetDate && targetDate <= maxDate) {
@@ -115,7 +112,8 @@ export class SpinalTimeSeriesArchiveDay extends Model {
       let index = 0;
       for (; index < this.length.get(); index += 1) {
         const element = this.lstDate.get(index);
-        if (element === targetDate) {      // check exist
+        if (element === targetDate) {
+          // check exist
           this.lstValue.set_val([index], data);
           return true;
         }
@@ -159,8 +157,8 @@ export class SpinalTimeSeriesArchiveDay extends Model {
     if (typeof index === 'number') return this.at(index);
     return {
       dateDay: this.dateDay.get(),
-      date : this.lstDate.get().subarray(0, this.length.get()),
-      value : this.lstValue.get().subarray(0, this.length.get()),
+      date: this.lstDate.get().subarray(0, this.length.get()),
+      value: this.lstValue.get().subarray(0, this.length.get()),
     };
   }
   /**
@@ -169,13 +167,13 @@ export class SpinalTimeSeriesArchiveDay extends Model {
    * @returns {SpinalDateValue}
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  at(index: number): SpinalDateValue {
+  public at(index: number): SpinalDateValue {
     if (index >= this.length.get() || index < 0) {
       return undefined;
     }
     return {
-      date : this.lstDate.get(index),
-      value : this.lstValue.get(index),
+      date: this.lstDate.get(index),
+      value: this.lstValue.get(index),
     };
   }
 
@@ -183,7 +181,7 @@ export class SpinalTimeSeriesArchiveDay extends Model {
    * For Tests - returns the TypedArrays' size
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  getActualBufferSize(): number {
+  public getActualBufferSize(): number {
     return this.lstDate.size(0);
   }
 
