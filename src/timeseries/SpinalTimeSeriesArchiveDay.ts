@@ -29,6 +29,9 @@ import {
   TypedArray_Float64,
 } from 'spinal-core-connectorjs_type';
 
+console.log("fichier");
+
+
 /**
  * @property {number} date
  * @property {number} value

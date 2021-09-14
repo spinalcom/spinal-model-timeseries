@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -37,6 +38,7 @@ const SpinalTimeSeriesArchive_1 = require("./SpinalTimeSeriesArchive");
 exports.SpinalTimeSeriesArchive = SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive;
 const SpinalTimeSeriesArchiveDay_1 = require("./SpinalTimeSeriesArchiveDay");
 exports.SpinalTimeSeriesArchiveDay = SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay;
+console.log("fichier");
 /**
  * @class SpinalTimeSeries
  * @property {spinal.Str} id
@@ -123,12 +125,14 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
                 currentDay = yield archive.getTodayArchive();
             }
             const normalizedDate = SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive.normalizeDate(Date.now());
+            const archive = yield this.getArchive();
             if (currentDay.dateDay.get() !== normalizedDate) {
-                const archive = yield this.getArchive();
+                //const archive = await this.getArchive();
                 this.currentProm = archive.getTodayArchive();
                 currentDay = yield this.currentProm;
             }
             currentDay.push(value);
+            archive.purgeArchive();
         });
     }
     /**
@@ -142,6 +146,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
             const archive = yield this.getArchive();
             currentDay = yield archive.getOrCreateArchiveAtDate(date);
             currentDay.insert(value, date);
+            archive.purgeArchive();
         });
     }
     /**
@@ -257,6 +262,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         });
     }
 }
+exports.SpinalTimeSeries = SpinalTimeSeries;
 /**
  * @static
  * @type {string}
@@ -269,7 +275,6 @@ SpinalTimeSeries.relationName = 'hasTimeSeries';
  * @memberof SpinalTimeSeries
  */
 SpinalTimeSeries.nodeTypeName = 'TimeSeries';
-exports.SpinalTimeSeries = SpinalTimeSeries;
 spinal_core_connectorjs_type_1.spinalCore.register_models(SpinalTimeSeries);
 exports.default = SpinalTimeSeries;
 //# sourceMappingURL=SpinalTimeSeries.js.map

@@ -30,6 +30,9 @@ import {
   SpinalDateValueArray,
 } from './SpinalTimeSeriesArchiveDay';
 
+console.log("fichier");
+
+
 /**
  * @class SpinalTimeSeries
  * @property {spinal.Str} id
@@ -138,12 +141,16 @@ class SpinalTimeSeries extends Model {
       currentDay = await archive.getTodayArchive();
     }
     const normalizedDate: number = SpinalTimeSeriesArchive.normalizeDate(Date.now());
+    const archive = await this.getArchive();
     if (currentDay.dateDay.get() !== normalizedDate) {
-      const archive = await this.getArchive();
+      //const archive = await this.getArchive();
       this.currentProm = archive.getTodayArchive();
       currentDay = await this.currentProm;
     }
     currentDay.push(value);
+
+    archive.purgeArchive();
+    
   }
 
   /**
@@ -156,6 +163,8 @@ class SpinalTimeSeries extends Model {
     const archive = await this.getArchive();
     currentDay = await archive.getOrCreateArchiveAtDate(date);
     currentDay.insert(value, date);
+
+    archive.purgeArchive();
   }
 
   /**

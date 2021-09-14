@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -60,13 +61,15 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
     /**
      *Creates an instance of SpinalTimeSeriesArchive.
      * @param {number} [initialBlockSize=50]
+     * @param {number} [maxDay=2]
      * @memberof SpinalTimeSeriesArchive
      */
-    constructor(initialBlockSize = 50) {
+    constructor(initialBlockSize = 50, maxDay = 2) {
         super({
             initialBlockSize,
             lstDate: [],
             lstItem: [],
+            maxDay,
         });
         this.itemLoadedDictionary = new Map;
         this.loadPtrDictionary = new Map;
@@ -163,6 +166,10 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         }
         this.lstDate.insert(index, [date]);
         this.lstItem.insert(index, [new spinal_core_connectorjs_type_1.Ptr(value)]);
+        // if(this.lstDate.length > this.maxLst.get() && this.lstItem.length > this.maxLst.get() && this.maxLst.get() > 0){
+        //   this.lstDate.splice(0, this.lstDate.length - this.maxLst.get());
+        //   this.lstItem.splice(0, this.lstItem.length - this.maxLst.get());
+        // }
         const prom = Promise.resolve(value);
         this.itemLoadedDictionary.set(date, prom);
         return prom;
@@ -210,8 +217,8 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getFromIntervalTime(start, end = Date.now()) {
+        var e_1, _a;
         return __awaiter(this, void 0, void 0, function* () {
-            var e_1, _a;
             const result = [];
             try {
                 for (var _b = __asyncValues(this.getFromIntervalTimeGen(start, end)), _c; _c = yield _b.next(), !_c.done;) {
@@ -275,6 +282,29 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
                 return true;
         }
         return false;
+    }
+    purgeArchive() {
+        if (this.maxDay.get() != 0) {
+            let lstDateToDelete = [];
+            // let lstItemToDelete = [];
+            const maxDayMS = this.maxDay.get() * 86400000;
+            const minDateMS = (new Date()).valueOf() - maxDayMS;
+            for (let index = 0; index < this.lstDate.length; index += 1) {
+                if (this.lstDate[index].get() <= minDateMS) {
+                    lstDateToDelete.push(this.lstDate[index].get());
+                    // this.lstDate.splice(index, 1);
+                }
+            }
+            for (let elt of lstDateToDelete) {
+                let id = this.lstDate.indexOf(elt);
+                this.lstDate.splice(id, 1);
+                this.lstItem.splice(id, 1);
+            }
+            // if(this.lstDate.length > this.maxLst.get() && this.lstItem.length > this.maxLst.get() && this.maxLst.get() > 0){
+            //   this.lstDate.splice(0, this.lstDate.length - this.maxLst.get());
+            //   this.lstItem.splice(0, this.lstItem.length - this.maxLst.get());
+            // }
+        }
     }
 }
 exports.SpinalTimeSeriesArchive = SpinalTimeSeriesArchive;
