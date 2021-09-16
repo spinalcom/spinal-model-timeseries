@@ -126,15 +126,29 @@ class SpinalServiceTimeseries {
     if (this.timeSeriesDictionnary.has(endpointNodeId)) {
       return this.timeSeriesDictionnary.get(endpointNodeId);
     }
-    const promise: Promise<SpinalTimeSeries> = new Promise(async (resolve) => {
+    const promise: Promise<SpinalTimeSeries> = new Promise(
+      this.getOrCreateTimeSeriesProm(endpointNodeId)
+    );
+    this.timeSeriesDictionnary.set(endpointNodeId, promise);
+
+    return promise;
+  }
+
+  private getOrCreateTimeSeriesProm(
+    endpointNodeId: string
+  ): (
+    resolve: (value: SpinalTimeSeries | PromiseLike<SpinalTimeSeries>) => void,
+    reject: (reason?: any) => void
+  ) => void {
+    return async (resolve) => {
       const children = await SpinalGraphService.getChildren(endpointNodeId, [
         SpinalTimeSeries.relationName,
       ]);
-      let timeSeriesProm: Promise<SpinalTimeSeries>;
+      let timeSeriesProm: SpinalTimeSeries | PromiseLike<SpinalTimeSeries>;
       if (children.length === 0) {
         // create element
         const timeSeries = new SpinalTimeSeries();
-        timeSeriesProm = Promise.resolve(timeSeries);
+        timeSeriesProm = timeSeries;
         // create node
         const node = SpinalGraphService.createNode(
           { timeSeriesId: timeSeries.id.get() },
@@ -148,19 +162,16 @@ class SpinalServiceTimeseries {
           SPINAL_RELATION_PTR_LST_TYPE
         );
       } else {
-        timeSeriesProm = <any>children[0].element.load();
+        timeSeriesProm = <Promise<SpinalTimeSeries>>children[0].element.load();
       }
       resolve(timeSeriesProm);
       return timeSeriesProm;
-    });
-    this.timeSeriesDictionnary.set(endpointNodeId, promise);
-
-    return promise;
+    };
   }
 
   /**
    * @param {SpinalTimeSeries} timeseries
-   * @returns {Promise<SpinalDateValue>}
+   * @return {*}  {Promise<SpinalDateValue>}
    * @memberof SpinalServiceTimeseries
    */
   public getCurrent(timeseries: SpinalTimeSeries): Promise<SpinalDateValue> {

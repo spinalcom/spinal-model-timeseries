@@ -46,5 +46,15 @@
     "tslint-config-airbnb": "^5.11.1",
     "typescript": "^3.2.2",
     "typescript-eslint-parser": "^21.0.2"
+  },
+  "nyc": {
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "exclude": [
+      "**/*.d.ts"
+    ],
+    "all": true
   }
 }

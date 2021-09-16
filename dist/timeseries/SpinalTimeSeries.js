@@ -161,62 +161,6 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
             return archive.getArchiveAtDate(date);
         });
     }
-    // /**
-    //  * @param {spinal.Ptr<SpinalTimeSeriesArchiveDay>} ptr
-    //  * @returns {Promise<SpinalTimeSeriesArchiveDay>}
-    //  * @memberof SpinalTimeSeries
-    //  */
-    // loadPtr(
-    //   ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>
-    // ): Promise<SpinalTimeSeriesArchiveDay>;
-    // /**
-    //  * @param {spinal.Ptr<SpinalTimeSeriesArchive>} ptr
-    //  * @returns {Promise<SpinalTimeSeriesArchive>}
-    //  * @memberof SpinalTimeSeries
-    //  */
-    // loadPtr(
-    //   ptr: spinal.Ptr<SpinalTimeSeriesArchive>
-    // ): Promise<SpinalTimeSeriesArchive>;
-    // /**
-    //  * @param {(spinal.Ptr<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)} ptr
-    //  * @returns {(Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)}
-    //  * @memberof SpinalTimeSeries
-    //  */
-    // public loadPtr(
-    //   ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive>
-    // ): Promise<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive> {
-    //   if (
-    //     typeof ptr.data.value !== 'undefined' &&
-    //     this.loadPtrDictionary.has(ptr.data.value)
-    //   ) {
-    //     return this.loadPtrDictionary.get(ptr.data.value);
-    //   }
-    //   if (typeof ptr.data.model !== 'undefined') {
-    //     const res = Promise.resolve(ptr.data.model);
-    //     if (ptr.data.value) {
-    //       this.loadPtrDictionary.set(ptr.data.value, res);
-    //     }
-    //     return res;
-    //   }
-    //   if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
-    //     return Promise.reject('Load Ptr to 0');
-    //   }
-    //   if (typeof FileSystem._objects[ptr.data.value] !== 'undefined') {
-    //     const res = Promise.resolve(
-    //       <SpinalTimeSeriesArchiveDay>FileSystem._objects[ptr.data.value]
-    //     );
-    //     this.loadPtrDictionary.set(ptr.data.value, res);
-    //     return Promise.resolve(res);
-    //   }
-    //   const res: Promise<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive> =
-    //     new Promise((resolve) => {
-    //       ptr.load((element) => {
-    //         resolve(element);
-    //       });
-    //     });
-    //   this.loadPtrDictionary.set(ptr.data.value, res);
-    //   return res;
-    // }
     /**
      * @returns {Promise<SpinalTimeSeriesArchive>}
      * @memberof SpinalTimeSeries

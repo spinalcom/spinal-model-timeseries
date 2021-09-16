@@ -37,9 +37,10 @@ declare class SpinalServiceTimeseries {
      * @memberof SpinalServiceTimeseries
      */
     getOrCreateTimeSeries(endpointNodeId: EndpointId): Promise<SpinalTimeSeries>;
+    private getOrCreateTimeSeriesProm;
     /**
      * @param {SpinalTimeSeries} timeseries
-     * @returns {Promise<SpinalDateValue>}
+     * @return {*}  {Promise<SpinalDateValue>}
      * @memberof SpinalServiceTimeseries
      */
     getCurrent(timeseries: SpinalTimeSeries): Promise<SpinalDateValue>;

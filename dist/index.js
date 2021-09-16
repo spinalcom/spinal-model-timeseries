@@ -122,7 +122,12 @@ class SpinalServiceTimeseries {
         if (this.timeSeriesDictionnary.has(endpointNodeId)) {
             return this.timeSeriesDictionnary.get(endpointNodeId);
         }
-        const promise = new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+        const promise = new Promise(this.getOrCreateTimeSeriesProm(endpointNodeId));
+        this.timeSeriesDictionnary.set(endpointNodeId, promise);
+        return promise;
+    }
+    getOrCreateTimeSeriesProm(endpointNodeId) {
+        return (resolve) => __awaiter(this, void 0, void 0, function* () {
             const children = yield spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(endpointNodeId, [
                 SpinalTimeSeries_1.SpinalTimeSeries.relationName,
             ]);
@@ -130,7 +135,7 @@ class SpinalServiceTimeseries {
             if (children.length === 0) {
                 // create element
                 const timeSeries = new SpinalTimeSeries_1.SpinalTimeSeries();
-                timeSeriesProm = Promise.resolve(timeSeries);
+                timeSeriesProm = timeSeries;
                 // create node
                 const node = spinal_env_viewer_graph_service_1.SpinalGraphService.createNode({ timeSeriesId: timeSeries.id.get() }, timeSeries);
                 // push node to parent
@@ -141,13 +146,11 @@ class SpinalServiceTimeseries {
             }
             resolve(timeSeriesProm);
             return timeSeriesProm;
-        }));
-        this.timeSeriesDictionnary.set(endpointNodeId, promise);
-        return promise;
+        });
     }
     /**
      * @param {SpinalTimeSeries} timeseries
-     * @returns {Promise<SpinalDateValue>}
+     * @return {*}  {Promise<SpinalDateValue>}
      * @memberof SpinalServiceTimeseries
      */
     getCurrent(timeseries) {

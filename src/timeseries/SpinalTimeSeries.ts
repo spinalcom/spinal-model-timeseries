@@ -22,19 +22,17 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 import {
+  FileSystem,
   Model,
   Ptr,
   spinalCore,
-  FileSystem,
 } from 'spinal-core-connectorjs_type';
 import { genUID } from '../genUID';
 import { loadPtr } from '../utils/loadPtr';
+import { SpinalDateValue } from './SpinalDateValue';
+import { SpinalDateValueArray } from './SpinalDateValueArray';
 import { SpinalTimeSeriesArchive } from './SpinalTimeSeriesArchive';
-import {
-  SpinalTimeSeriesArchiveDay,
-  SpinalDateValue,
-  SpinalDateValueArray,
-} from './SpinalTimeSeriesArchiveDay';
+import { SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
 
 /**
  * @class SpinalTimeSeries
@@ -172,7 +170,6 @@ class SpinalTimeSeries extends Model {
     const archive = await this.getArchive();
     currentDay = await archive.getOrCreateArchiveAtDate(date);
     currentDay.insert(value, date);
-
     archive.purgeArchive();
   }
 
@@ -187,66 +184,6 @@ class SpinalTimeSeries extends Model {
     const archive = await this.getArchive();
     return archive.getArchiveAtDate(date);
   }
-
-  // /**
-  //  * @param {spinal.Ptr<SpinalTimeSeriesArchiveDay>} ptr
-  //  * @returns {Promise<SpinalTimeSeriesArchiveDay>}
-  //  * @memberof SpinalTimeSeries
-  //  */
-  // loadPtr(
-  //   ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>
-  // ): Promise<SpinalTimeSeriesArchiveDay>;
-  // /**
-  //  * @param {spinal.Ptr<SpinalTimeSeriesArchive>} ptr
-  //  * @returns {Promise<SpinalTimeSeriesArchive>}
-  //  * @memberof SpinalTimeSeries
-  //  */
-  // loadPtr(
-  //   ptr: spinal.Ptr<SpinalTimeSeriesArchive>
-  // ): Promise<SpinalTimeSeriesArchive>;
-  // /**
-  //  * @param {(spinal.Ptr<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)} ptr
-  //  * @returns {(Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)}
-  //  * @memberof SpinalTimeSeries
-  //  */
-  // public loadPtr(
-  //   ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive>
-  // ): Promise<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive> {
-  //   if (
-  //     typeof ptr.data.value !== 'undefined' &&
-  //     this.loadPtrDictionary.has(ptr.data.value)
-  //   ) {
-  //     return this.loadPtrDictionary.get(ptr.data.value);
-  //   }
-
-  //   if (typeof ptr.data.model !== 'undefined') {
-  //     const res = Promise.resolve(ptr.data.model);
-  //     if (ptr.data.value) {
-  //       this.loadPtrDictionary.set(ptr.data.value, res);
-  //     }
-  //     return res;
-  //   }
-
-  //   if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
-  //     return Promise.reject('Load Ptr to 0');
-  //   }
-
-  //   if (typeof FileSystem._objects[ptr.data.value] !== 'undefined') {
-  //     const res = Promise.resolve(
-  //       <SpinalTimeSeriesArchiveDay>FileSystem._objects[ptr.data.value]
-  //     );
-  //     this.loadPtrDictionary.set(ptr.data.value, res);
-  //     return Promise.resolve(res);
-  //   }
-  //   const res: Promise<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive> =
-  //     new Promise((resolve) => {
-  //       ptr.load((element) => {
-  //         resolve(element);
-  //       });
-  //     });
-  //   this.loadPtrDictionary.set(ptr.data.value, res);
-  //   return res;
-  // }
 
   /**
    * @returns {Promise<SpinalTimeSeriesArchive>}

@@ -1,27 +1,9 @@
 import { Model } from 'spinal-core-connectorjs_type';
+import { SpinalDateValue } from './SpinalDateValue';
+import { SpinalDateValueArray } from './SpinalDateValueArray';
 /**
- * @property {number} date
- * @property {number} value
- * @interface SpinalDateValue
- */
-export interface SpinalDateValue {
-    date: number;
-    value: number;
-}
-/**
- * @property {number} dateDay
- * @property {Float64Array} date
- * @property {Float64Array} value
- * @interface SpinalDateValueArray
- */
-export interface SpinalDateValueArray {
-    dateDay: number;
-    date: Float64Array;
-    value: Float64Array;
-}
-/**
- * @property {spinal.TypedArray_Float64} lstDate
- * @property {spinal.TypedArray_Float64} lstValue
+ * @property {spinal.Lst<spinal.Val>} lstDate
+ * @property {spinal.Lst<spinal.Val>} lstValue
  * @property {spinal.Val} length
  * @property {spinal.Val} dateDay
  * @class SpinalTimeSeriesArchiveDay
@@ -30,13 +12,13 @@ export interface SpinalDateValueArray {
 export declare class SpinalTimeSeriesArchiveDay extends Model {
     /**
      * @private
-     * @type {spinal.TypedArray_Float64}
+     * @type {spinal.Lst<spinal.Val>}
      * @memberof SpinalTimeSeriesArchiveDay
      */
     private lstDate;
     /**
      * @private
-     * @type {spinal.TypedArray_Float64}
+     * @type {spinal.Lst<spinal.Val>}
      * @memberof SpinalTimeSeriesArchiveDay
      */
     private lstValue;
@@ -83,5 +65,6 @@ export declare class SpinalTimeSeriesArchiveDay extends Model {
      * @memberof SpinalTimeSeriesArchiveDay
      */
     private addBufferSizeLength;
+    private upgradeFromOldTimeSeries;
 }
 export default SpinalTimeSeriesArchiveDay;

@@ -140,10 +140,6 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         }
         this.lstDate.insert(index, [date]);
         this.lstItem.insert(index, [new spinal_core_connectorjs_type_1.Ptr(value)]);
-        // if(this.lstDate.length > this.maxLst.get() && this.lstItem.length > this.maxLst.get() && this.maxLst.get() > 0){
-        //   this.lstDate.splice(0, this.lstDate.length - this.maxLst.get());
-        //   this.lstItem.splice(0, this.lstItem.length - this.maxLst.get());
-        // }
         const prom = Promise.resolve(value);
         this.itemLoadedDictionary.set(date, prom);
         return prom;
@@ -224,19 +220,22 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         const idx = this.lstDate.indexOf(normalizedDate);
         if (idx < 0)
             return Promise.reject(new Error(`Date '${date}' not fond.`));
-        const promise = new Promise((resolve) => {
-            const ptr = this.lstItem[idx];
-            if (typeof ptr.data.model !== 'undefined') {
-                resolve(ptr.data.model);
-            }
-            else {
-                ptr.load((element) => {
-                    resolve(element);
-                });
-            }
-        });
+        const promise = getArchive.call(this);
         this.itemLoadedDictionary.set(normalizedDate, promise);
         return promise;
+        function getArchive() {
+            return new Promise((resolve) => {
+                const ptr = this.lstItem[idx];
+                if (typeof ptr.data.model !== 'undefined') {
+                    resolve(ptr.data.model);
+                }
+                else {
+                    ptr.load((element) => {
+                        resolve(element);
+                    });
+                }
+            });
+        }
     }
     /**
      * @returns {spinal.Lst<spinal.Val>}
@@ -261,13 +260,11 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
     purgeArchive() {
         if (this.maxDay.get() != 0) {
             let lstDateToDelete = [];
-            // let lstItemToDelete = [];
             const maxDayMS = this.maxDay.get() * 86400000;
             const minDateMS = new Date().valueOf() - maxDayMS;
             for (let index = 0; index < this.lstDate.length; index += 1) {
                 if (this.lstDate[index].get() <= minDateMS) {
                     lstDateToDelete.push(this.lstDate[index].get());
-                    // this.lstDate.splice(index, 1);
                 }
             }
             for (let elt of lstDateToDelete) {
@@ -275,10 +272,6 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
                 this.lstDate.splice(id, 1);
                 this.lstItem.splice(id, 1);
             }
-            // if(this.lstDate.length > this.maxLst.get() && this.lstItem.length > this.maxLst.get() && this.maxLst.get() > 0){
-            //   this.lstDate.splice(0, this.lstDate.length - this.maxLst.get());
-            //   this.lstItem.splice(0, this.lstItem.length - this.maxLst.get());
-            // }
         }
     }
 }
