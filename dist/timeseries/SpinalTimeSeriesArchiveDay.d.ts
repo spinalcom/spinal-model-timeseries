@@ -37,6 +37,7 @@ export declare class SpinalTimeSeriesArchiveDay extends Model {
      * @memberof SpinalTimeSeriesArchiveDay
      */
     insert(data: number, date: number | string | Date): boolean;
+    private setLstVal;
     /**
      * @param {number} index
      * @returns {SpinalDateValue}

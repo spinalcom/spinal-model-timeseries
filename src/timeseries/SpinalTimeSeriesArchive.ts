@@ -35,7 +35,6 @@ class SpinalTimeSeriesArchive extends Model {
   private lstDate: spinal.Lst<spinal.Val>;
   private lstItem: spinal.Lst<spinal.Ptr<SpinalTimeSeriesArchiveDay>>;
   public initialBlockSize: spinal.Val;
-  public maxDay: spinal.Val;
 
   // not synchronized
   private itemLoadedDictionary: Map<
@@ -47,15 +46,13 @@ class SpinalTimeSeriesArchive extends Model {
   /**
    *Creates an instance of SpinalTimeSeriesArchive.
    * @param {number} [initialBlockSize=50]
-   * @param {number} [maxDay=2]
    * @memberof SpinalTimeSeriesArchive
    */
-  constructor(initialBlockSize: number = 50, maxDay: number = 2) {
+  constructor(initialBlockSize: number = 50) {
     super({
       initialBlockSize,
       lstDate: [],
       lstItem: [],
-      maxDay,
     });
 
     this.itemLoadedDictionary = new Map();
@@ -249,10 +246,10 @@ class SpinalTimeSeriesArchive extends Model {
     return false;
   }
 
-  public purgeArchive() {
-    if (this.maxDay.get() != 0) {
+  public purgeArchive(maxDay: number): void {
+    if (maxDay > 0) {
       let lstDateToDelete = [];
-      const maxDayMS = this.maxDay.get() * 86400000;
+      const maxDayMS = maxDay * 86400000;
       const minDateMS = new Date().valueOf() - maxDayMS;
       for (let index = 0; index < this.lstDate.length; index += 1) {
         if (this.lstDate[index].get() <= minDateMS) {

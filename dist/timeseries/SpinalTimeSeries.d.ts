@@ -6,6 +6,7 @@ import { SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
 /**
  * @class SpinalTimeSeries
  * @property {spinal.Str} id
+ * @property {spinal.Val} maxDay
  * @property {spinal.Ptr<SpinalTimeSeriesArchive>} archive
  * @property {spinal.Ptr<SpinalTimeSeriesArchiveDay>} currentArchive
  * @extends {Model}
@@ -30,10 +31,25 @@ declare class SpinalTimeSeries extends Model {
     currentProm: Promise<SpinalTimeSeriesArchiveDay>;
     private loadPtrDictionary;
     /**
-     *Creates an instance of SpinalTimeSeries.
+     * @type {spinal.Val} number of days to keep, default 2 days
+     * ```
+     * 0 = keep infinitly
+     * > 0 = nbr of day to keep
+     * ```
      * @memberof SpinalTimeSeries
      */
-    constructor();
+    maxday: spinal.Val;
+    /**
+     * Creates an instance of SpinalTimeSeries.
+     * @param {number} [initialBlockSize=50]
+     * @param {number} [maxday=2] number of days to keep, default 2 days
+     * ```
+     * 0 = keep infinitly
+     * > 0 = nbr of day to keep
+     * ```
+     * @memberof SpinalTimeSeries
+     */
+    constructor(initialBlockSize?: number, maxday?: number);
     /**
      * @param {(number|string|Date)} [start=0]
      * @param {(number|string|Date)} [end=Date.now()]
@@ -53,6 +69,7 @@ declare class SpinalTimeSeries extends Model {
      * @memberof SpinalTimeSeries
      */
     getCurrent(): Promise<SpinalDateValue>;
+    setConfig(initialBlockSize: number, maxDay: number): Promise<void>;
     /**
      * @param {number} value
      * @returns {Promise<void>}

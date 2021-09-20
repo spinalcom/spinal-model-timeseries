@@ -38,6 +38,7 @@ const SpinalTimeSeries_1 = require("./timeseries/SpinalTimeSeries");
 Object.defineProperty(exports, "SpinalTimeSeries", { enumerable: true, get: function () { return SpinalTimeSeries_1.SpinalTimeSeries; } });
 Object.defineProperty(exports, "SpinalTimeSeriesArchive", { enumerable: true, get: function () { return SpinalTimeSeries_1.SpinalTimeSeriesArchive; } });
 Object.defineProperty(exports, "SpinalTimeSeriesArchiveDay", { enumerable: true, get: function () { return SpinalTimeSeries_1.SpinalTimeSeriesArchiveDay; } });
+const spinal_env_viewer_plugin_documentation_service_1 = require("spinal-env-viewer-plugin-documentation-service");
 /**
  * @class SpinalServiceTimeseries
  */
@@ -119,14 +120,57 @@ class SpinalServiceTimeseries {
      * @memberof SpinalServiceTimeseries
      */
     getOrCreateTimeSeries(endpointNodeId) {
-        if (this.timeSeriesDictionnary.has(endpointNodeId)) {
-            return this.timeSeriesDictionnary.get(endpointNodeId);
-        }
-        const promise = new Promise(this.getOrCreateTimeSeriesProm(endpointNodeId));
-        this.timeSeriesDictionnary.set(endpointNodeId, promise);
-        return promise;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.timeSeriesDictionnary.has(endpointNodeId)) {
+                return this.timeSeriesDictionnary.get(endpointNodeId);
+            }
+            const cfg = yield this.getConfigFormEndpoint(endpointNodeId);
+            const promise = new Promise(this.getOrCreateTimeSeriesProm(endpointNodeId, cfg));
+            // get timeseries config from endpoints
+            // set config to timeseries
+            this.timeSeriesDictionnary.set(endpointNodeId, promise);
+            return promise;
+        });
     }
-    getOrCreateTimeSeriesProm(endpointNodeId) {
+    getConfigFormEndpoint(endpointNodeId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const node = spinal_env_viewer_graph_service_1.SpinalGraphService.getRealNode(endpointNodeId);
+                const cat = yield spinal_env_viewer_plugin_documentation_service_1.attributeService.getCategoryByName(node, 'default');
+                const attrs = yield spinal_env_viewer_plugin_documentation_service_1.attributeService.getAttributesByCategory(node, cat);
+                let maxDay = null;
+                let initialBlockSize = null;
+                for (const attr of attrs) {
+                    switch (attr.label.get()) {
+                        case 'timeSeries maxDay':
+                            maxDay = parseInt(attr.value.get());
+                            break;
+                        case 'timeSeries initialBlockSize':
+                            initialBlockSize = parseInt(attr.value.get());
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                maxDay = maxDay === null ? 2 : maxDay;
+                initialBlockSize = initialBlockSize === null ? 50 : initialBlockSize;
+                //
+                yield spinal_env_viewer_plugin_documentation_service_1.attributeService.addAttributeByCategoryName(node, 'default', 'timeSeries maxDay', maxDay.toLocaleString());
+                yield spinal_env_viewer_plugin_documentation_service_1.attributeService.addAttributeByCategoryName(node, 'default', 'timeSeries initialBlockSize', initialBlockSize.toLocaleString());
+                return {
+                    maxDay: maxDay,
+                    initialBlockSize: initialBlockSize,
+                };
+            }
+            catch (e) {
+                return {
+                    maxDay: 2,
+                    initialBlockSize: 50,
+                };
+            }
+        });
+    }
+    getOrCreateTimeSeriesProm(endpointNodeId, cfg) {
         return (resolve) => __awaiter(this, void 0, void 0, function* () {
             const children = yield spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(endpointNodeId, [
                 SpinalTimeSeries_1.SpinalTimeSeries.relationName,
@@ -134,7 +178,7 @@ class SpinalServiceTimeseries {
             let timeSeriesProm;
             if (children.length === 0) {
                 // create element
-                const timeSeries = new SpinalTimeSeries_1.SpinalTimeSeries();
+                const timeSeries = new SpinalTimeSeries_1.SpinalTimeSeries(cfg.initialBlockSize, cfg.maxDay);
                 timeSeriesProm = timeSeries;
                 // create node
                 const node = spinal_env_viewer_graph_service_1.SpinalGraphService.createNode({ timeSeriesId: timeSeries.id.get() }, timeSeries);
@@ -142,7 +186,9 @@ class SpinalServiceTimeseries {
                 yield spinal_env_viewer_graph_service_1.SpinalGraphService.addChild(endpointNodeId, node, SpinalTimeSeries_1.SpinalTimeSeries.relationName, spinal_env_viewer_graph_service_1.SPINAL_RELATION_PTR_LST_TYPE);
             }
             else {
-                timeSeriesProm = children[0].element.load();
+                const timeSeries = yield (children[0].element.load());
+                yield timeSeries.setConfig(cfg.initialBlockSize, cfg.maxDay);
+                timeSeriesProm = timeSeries;
             }
             resolve(timeSeriesProm);
             return timeSeriesProm;

@@ -9,16 +9,14 @@ declare class SpinalTimeSeriesArchive extends Model {
     private lstDate;
     private lstItem;
     initialBlockSize: spinal.Val;
-    maxDay: spinal.Val;
     private itemLoadedDictionary;
     private loadPtrDictionary;
     /**
      *Creates an instance of SpinalTimeSeriesArchive.
      * @param {number} [initialBlockSize=50]
-     * @param {number} [maxDay=2]
      * @memberof SpinalTimeSeriesArchive
      */
-    constructor(initialBlockSize?: number, maxDay?: number);
+    constructor(initialBlockSize?: number);
     /**
      * @static
      * @param {(number | string | Date)} date
@@ -68,7 +66,7 @@ declare class SpinalTimeSeriesArchive extends Model {
      * @memberof SpinalTimeSeriesArchive
      */
     dateExist(date: number | string | Date): boolean;
-    purgeArchive(): void;
+    purgeArchive(maxDay: number): void;
 }
 export default SpinalTimeSeriesArchive;
 export { SpinalTimeSeriesArchive };

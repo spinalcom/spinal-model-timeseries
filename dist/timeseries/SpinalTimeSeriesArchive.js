@@ -63,15 +63,13 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
     /**
      *Creates an instance of SpinalTimeSeriesArchive.
      * @param {number} [initialBlockSize=50]
-     * @param {number} [maxDay=2]
      * @memberof SpinalTimeSeriesArchive
      */
-    constructor(initialBlockSize = 50, maxDay = 2) {
+    constructor(initialBlockSize = 50) {
         super({
             initialBlockSize,
             lstDate: [],
             lstItem: [],
-            maxDay,
         });
         this.itemLoadedDictionary = new Map();
         this.loadPtrDictionary = new Map();
@@ -257,10 +255,10 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         }
         return false;
     }
-    purgeArchive() {
-        if (this.maxDay.get() != 0) {
+    purgeArchive(maxDay) {
+        if (maxDay > 0) {
             let lstDateToDelete = [];
-            const maxDayMS = this.maxDay.get() * 86400000;
+            const maxDayMS = maxDay * 86400000;
             const minDateMS = new Date().valueOf() - maxDayMS;
             for (let index = 0; index < this.lstDate.length; index += 1) {
                 if (this.lstDate[index].get() <= minDateMS) {

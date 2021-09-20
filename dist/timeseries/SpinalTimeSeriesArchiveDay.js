@@ -53,8 +53,7 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
         this.upgradeFromOldTimeSeries();
         if (this.lstDate.length <= this.length.get())
             this.addBufferSizeLength();
-        this.lstDate[this.length.get()].set(Date.now());
-        this.lstValue[this.length.get()].set(data);
+        this.setLstVal(this.length.get(), Date.now(), data);
         this.length.set(this.length.get() + 1);
     }
     /**
@@ -67,38 +66,37 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
         this.upgradeFromOldTimeSeries();
         const targetDate = new Date(date).getTime();
         const maxDate = new Date(this.dateDay.get()).setUTCHours(23, 59, 59, 999);
-        if (this.dateDay.get() <= targetDate && targetDate <= maxDate) {
-            if (this.lstDate.length <= this.length.get())
-                this.addBufferSizeLength();
-            let index = 0;
-            for (; index < this.length.get(); index += 1) {
-                const element = this.lstDate[index].get();
-                if (element === targetDate) {
-                    // check exist
-                    this.lstValue[index].set(data);
-                    // this.lstValue.set_val([index], data);
-                    return true;
-                }
-                if (element > targetDate)
-                    break;
-            }
-            if (index === this.length.get()) {
-                this.lstDate[this.length.get()].set(targetDate);
-                this.lstValue[this.length.get()].set(data);
-                this.length.set(this.length.get() + 1);
-            }
-            else {
-                for (let idx = this.length.get() - 1; idx >= index; idx -= 1) {
-                    this.lstDate[idx + 1].set(this.lstDate[idx].get());
-                    this.lstValue[idx + 1].set(this.lstValue[idx].get());
-                }
-                this.lstDate[index].set(targetDate);
+        if (!(this.dateDay.get() <= targetDate && targetDate <= maxDate))
+            return false;
+        if (this.lstDate.length <= this.length.get())
+            this.addBufferSizeLength();
+        let index = 0;
+        for (; index < this.length.get(); index += 1) {
+            const element = this.lstDate[index].get();
+            if (element === targetDate) {
+                // check exist
                 this.lstValue[index].set(data);
-                this.length.set(this.length.get() + 1);
+                return true;
             }
-            return true;
+            if (element > targetDate)
+                break;
         }
-        return false;
+        if (index === this.length.get()) {
+            this.setLstVal(this.length.get(), targetDate, data);
+            this.length.set(this.length.get() + 1);
+        }
+        else {
+            for (let idx = this.length.get() - 1; idx >= index; idx -= 1) {
+                this.setLstVal(idx + 1, this.lstDate[idx].get(), this.lstValue[idx].get());
+            }
+            this.setLstVal(index, targetDate, data);
+            this.length.set(this.length.get() + 1);
+        }
+        return true;
+    }
+    setLstVal(idx, date, value) {
+        this.lstDate[idx].set(date);
+        this.lstValue[idx].set(value);
     }
     /**
      * @param {number} [index]
@@ -106,9 +104,16 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
      * @memberof SpinalTimeSeriesArchiveDay
      */
     get(index) {
-        this.upgradeFromOldTimeSeries();
         if (typeof index === 'number')
             return this.at(index);
+        if (this.lstDate instanceof spinal_core_connectorjs_type_1.TypedArray)
+            return {
+                dateDay: this.dateDay.get(),
+                // @ts-ignore
+                date: this.lstDate.get().subarray(0, this.length.get()),
+                // @ts-ignore
+                value: this.lstValue.get().subarray(0, this.length.get()),
+            };
         const date = [], value = [];
         for (let idx = 0; idx < this.length.get(); idx++) {
             date.push(this.lstDate[idx].get());
@@ -127,9 +132,15 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
      * @memberof SpinalTimeSeriesArchiveDay
      */
     at(index) {
-        this.upgradeFromOldTimeSeries();
         if (index >= this.length.get() || index < 0) {
             return undefined;
+        }
+        if (this.lstDate instanceof spinal_core_connectorjs_type_1.TypedArray) {
+            return {
+                date: this.lstDate.get(index),
+                // @ts-ignore
+                value: this.lstValue.get(index),
+            };
         }
         return {
             date: this.lstDate[index].get(),

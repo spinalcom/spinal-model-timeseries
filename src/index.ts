@@ -35,7 +35,20 @@ import {
   SpinalDateValueArray,
 } from './timeseries/SpinalTimeSeries';
 
+import { attributeService } from 'spinal-env-viewer-plugin-documentation-service';
 type EndpointId = string;
+interface TimeSeriesEndpointCfg {
+  maxDay: number;
+  initialBlockSize: number;
+}
+interface SpinalAttribute extends spinal.Model {
+  label: spinal.Str;
+  value: spinal.Str;
+  date: spinal.Val;
+  type: spinal.Str;
+  unit: spinal.Str;
+}
+
 /**
  * @class SpinalServiceTimeseries
  */
@@ -120,22 +133,77 @@ class SpinalServiceTimeseries {
    * @returns {Promise<SpinalTimeSeries>}
    * @memberof SpinalServiceTimeseries
    */
-  public getOrCreateTimeSeries(
+  public async getOrCreateTimeSeries(
     endpointNodeId: EndpointId
   ): Promise<SpinalTimeSeries> {
     if (this.timeSeriesDictionnary.has(endpointNodeId)) {
       return this.timeSeriesDictionnary.get(endpointNodeId);
     }
+    const cfg = await this.getConfigFormEndpoint(endpointNodeId);
     const promise: Promise<SpinalTimeSeries> = new Promise(
-      this.getOrCreateTimeSeriesProm(endpointNodeId)
+      this.getOrCreateTimeSeriesProm(endpointNodeId, cfg)
     );
+    // get timeseries config from endpoints
+    // set config to timeseries
+
     this.timeSeriesDictionnary.set(endpointNodeId, promise);
 
     return promise;
   }
+  private async getConfigFormEndpoint(
+    endpointNodeId: EndpointId
+  ): Promise<TimeSeriesEndpointCfg> {
+    try {
+      const node = SpinalGraphService.getRealNode(endpointNodeId);
+      const cat = await attributeService.getCategoryByName(node, 'default');
+
+      const attrs: SpinalAttribute[] =
+        await attributeService.getAttributesByCategory(node, cat);
+      let maxDay: number = null;
+      let initialBlockSize: number = null;
+      for (const attr of attrs) {
+        switch (attr.label.get()) {
+          case 'timeSeries maxDay':
+            maxDay = parseInt(attr.value.get());
+            break;
+          case 'timeSeries initialBlockSize':
+            initialBlockSize = parseInt(attr.value.get());
+            break;
+          default:
+            break;
+        }
+      }
+      maxDay = maxDay === null ? 2 : maxDay;
+      initialBlockSize = initialBlockSize === null ? 50 : initialBlockSize;
+      //
+      await attributeService.addAttributeByCategoryName(
+        node,
+        'default',
+        'timeSeries maxDay',
+        maxDay.toLocaleString()
+      );
+      await attributeService.addAttributeByCategoryName(
+        node,
+        'default',
+        'timeSeries initialBlockSize',
+        initialBlockSize.toLocaleString()
+      );
+
+      return {
+        maxDay: maxDay,
+        initialBlockSize: initialBlockSize,
+      };
+    } catch (e) {
+      return {
+        maxDay: 2,
+        initialBlockSize: 50,
+      };
+    }
+  }
 
   private getOrCreateTimeSeriesProm(
-    endpointNodeId: string
+    endpointNodeId: string,
+    cfg: TimeSeriesEndpointCfg
   ): (
     resolve: (value: SpinalTimeSeries | PromiseLike<SpinalTimeSeries>) => void,
     reject: (reason?: any) => void
@@ -147,7 +215,10 @@ class SpinalServiceTimeseries {
       let timeSeriesProm: SpinalTimeSeries | PromiseLike<SpinalTimeSeries>;
       if (children.length === 0) {
         // create element
-        const timeSeries = new SpinalTimeSeries();
+        const timeSeries = new SpinalTimeSeries(
+          cfg.initialBlockSize,
+          cfg.maxDay
+        );
         timeSeriesProm = timeSeries;
         // create node
         const node = SpinalGraphService.createNode(
@@ -162,7 +233,11 @@ class SpinalServiceTimeseries {
           SPINAL_RELATION_PTR_LST_TYPE
         );
       } else {
-        timeSeriesProm = <Promise<SpinalTimeSeries>>children[0].element.load();
+        const timeSeries = await (<Promise<SpinalTimeSeries>>(
+          children[0].element.load()
+        ));
+        await timeSeries.setConfig(cfg.initialBlockSize, cfg.maxDay);
+        timeSeriesProm = timeSeries;
       }
       resolve(timeSeriesProm);
       return timeSeriesProm;

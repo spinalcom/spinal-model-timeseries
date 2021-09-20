@@ -37,6 +37,7 @@ declare class SpinalServiceTimeseries {
      * @memberof SpinalServiceTimeseries
      */
     getOrCreateTimeSeries(endpointNodeId: EndpointId): Promise<SpinalTimeSeries>;
+    private getConfigFormEndpoint;
     private getOrCreateTimeSeriesProm;
     /**
      * @param {SpinalTimeSeries} timeseries
