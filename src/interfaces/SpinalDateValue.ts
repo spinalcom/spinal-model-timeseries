@@ -1,6 +1,5 @@
-"use strict";
 /*
- * Copyright 2018 SpinalCom - www.spinalcom.com
+ * Copyright 2021 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
@@ -22,17 +21,13 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-}
+
 /**
- * @param {string} constructor
- * @returns {string}
+ * @property {number} date
+ * @property {number} value
+ * @interface SpinalDateValue
  */
-function genUID(constructor) {
-    const res = `${constructor}-${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4() + s4() + s4()}-${Date.now().toString(16)}`;
-    return res;
+export interface SpinalDateValue {
+  date: number;
+  value: number;
 }
-exports.genUID = genUID;
-//# sourceMappingURL=genUID.js.map

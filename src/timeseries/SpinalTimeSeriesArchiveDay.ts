@@ -26,34 +26,15 @@ import {
   Model,
   FileSystem,
   spinalCore,
-  TypedArray_Float64,
+  Lst,
+  TypedArray,
 } from 'spinal-core-connectorjs_type';
+import { SpinalDateValue } from '../interfaces/SpinalDateValue';
+import { SpinalDateValueArray } from '../interfaces/SpinalDateValueArray';
 
 /**
- * @property {number} date
- * @property {number} value
- * @interface SpinalDateValue
- */
-export interface SpinalDateValue {
-  date: number;
-  value: number;
-}
-
-/**
- * @property {number} dateDay
- * @property {Float64Array} date
- * @property {Float64Array} value
- * @interface SpinalDateValueArray
- */
-export interface SpinalDateValueArray {
-  dateDay: number;
-  date: Float64Array;
-  value: Float64Array;
-}
-
-/**
- * @property {spinal.TypedArray_Float64} lstDate
- * @property {spinal.TypedArray_Float64} lstValue
+ * @property {spinal.Lst<spinal.Val>} lstDate
+ * @property {spinal.Lst<spinal.Val>} lstValue
  * @property {spinal.Val} length
  * @property {spinal.Val} dateDay
  * @class SpinalTimeSeriesArchiveDay
@@ -62,16 +43,16 @@ export interface SpinalDateValueArray {
 export class SpinalTimeSeriesArchiveDay extends Model {
   /**
    * @private
-   * @type {spinal.TypedArray_Float64}
+   * @type {spinal.Lst<spinal.Val>}
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  private lstDate: spinal.TypedArray_Float64;
+  private lstDate: spinal.Lst<spinal.Val>;
   /**
    * @private
-   * @type {spinal.TypedArray_Float64}
+   * @type {spinal.Lst<spinal.Val>}
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  private lstValue: spinal.TypedArray_Float64;
+  private lstValue: spinal.Lst<spinal.Val>;
   public length: spinal.Val;
   public dateDay: spinal.Val;
 
@@ -79,13 +60,11 @@ export class SpinalTimeSeriesArchiveDay extends Model {
     super();
     if (FileSystem._sig_server === false) return;
     this.add_attr({
-      lstDate: new TypedArray_Float64(),
-      lstValue: new TypedArray_Float64(),
+      lstDate: new Lst(Array(initialBlockSize).fill(0)),
+      lstValue: new Lst(Array(initialBlockSize).fill(0)),
       dateDay: new Date().setUTCHours(0, 0, 0, 0),
       length: 0,
     });
-    this.lstDate.resize([initialBlockSize]);
-    this.lstValue.resize([initialBlockSize]);
   }
 
   /**
@@ -93,9 +72,9 @@ export class SpinalTimeSeriesArchiveDay extends Model {
    * @memberof SpinalTimeSeriesArchiveDay
    */
   push(data: number): void {
-    if (this.lstDate.size(0) <= this.length.get()) this.addBufferSizeLength();
-    this.lstDate.set_val(this.length.get(), Date.now());
-    this.lstValue.set_val(this.length.get(), data);
+    this.upgradeFromOldTimeSeries();
+    if (this.lstDate.length <= this.length.get()) this.addBufferSizeLength();
+    this.setLstVal(this.length.get(), Date.now(), data);
     this.length.set(this.length.get() + 1);
   }
   /**
@@ -104,36 +83,43 @@ export class SpinalTimeSeriesArchiveDay extends Model {
    * @returns {boolean}
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  insert(data: number, date: number|string|Date): boolean {
+  insert(data: number, date: number | string | Date): boolean {
+    this.upgradeFromOldTimeSeries();
     const targetDate = new Date(date).getTime();
     const maxDate = new Date(this.dateDay.get()).setUTCHours(23, 59, 59, 999);
-    if (this.dateDay.get() <= targetDate && targetDate <= maxDate) {
-      if (this.lstDate.size(0) <= this.length.get()) this.addBufferSizeLength();
-      let index = 0;
-      for (; index < this.length.get(); index += 1) {
-        const element = this.lstDate.get(index);
-        if (element === targetDate) {      // check exist
-          this.lstValue.set_val([index], data);
-          return true;
-        }
-        if (element > targetDate) break;
+    if (!(this.dateDay.get() <= targetDate && targetDate <= maxDate))
+      return false;
+    if (this.lstDate.length <= this.length.get()) this.addBufferSizeLength();
+    let index = 0;
+    for (; index < this.length.get(); index += 1) {
+      const element = this.lstDate[index].get();
+      if (element === targetDate) {
+        // check exist
+        this.lstValue[index].set(data);
+        return true;
       }
-      if (index === this.length.get()) {
-        this.lstDate.set_val(this.length.get(), targetDate);
-        this.lstValue.set_val(this.length.get(), data);
-        this.length.set(this.length.get() + 1);
-      } else {
-        for (let idx = this.length.get() - 1; idx >= index; idx -= 1) {
-          this.lstDate.set_val([idx + 1], this.lstDate.get(idx));
-          this.lstValue.set_val([idx + 1], this.lstValue.get(idx));
-        }
-        this.lstDate.set_val([index], targetDate);
-        this.lstValue.set_val([index], data);
-        this.length.set(this.length.get() + 1);
-      }
-      return true;
+      if (element > targetDate) break;
     }
-    return false;
+    if (index === this.length.get()) {
+      this.setLstVal(this.length.get(), targetDate, data);
+      this.length.set(this.length.get() + 1);
+    } else {
+      for (let idx = this.length.get() - 1; idx >= index; idx -= 1) {
+        this.setLstVal(
+          idx + 1,
+          this.lstDate[idx].get(),
+          this.lstValue[idx].get()
+        );
+      }
+      this.setLstVal(index, targetDate, data);
+      this.length.set(this.length.get() + 1);
+    }
+    return true;
+  }
+
+  private setLstVal(idx: number, date: number, value: number): void {
+    this.lstDate[idx].set(date);
+    this.lstValue[idx].set(value);
   }
 
   /**
@@ -154,25 +140,47 @@ export class SpinalTimeSeriesArchiveDay extends Model {
    */
   get(index?: number): SpinalDateValue | SpinalDateValueArray {
     if (typeof index === 'number') return this.at(index);
+    if (this.lstDate instanceof TypedArray)
+      return {
+        dateDay: this.dateDay.get(),
+        // @ts-ignore
+        date: this.lstDate.get().subarray(0, this.length.get()),
+        // @ts-ignore
+        value: this.lstValue.get().subarray(0, this.length.get()),
+      };
+    const date = [],
+      value = [];
+    for (let idx = 0; idx < this.length.get(); idx++) {
+      date.push(this.lstDate[idx].get());
+      value.push(this.lstValue[idx].get());
+    }
     return {
       dateDay: this.dateDay.get(),
-      date : this.lstDate.get().subarray(0, this.length.get()),
-      value : this.lstValue.get().subarray(0, this.length.get()),
+      date,
+      value,
     };
   }
+
   /**
    * alias of 'get' method with index
    * @param {number} index
    * @returns {SpinalDateValue}
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  at(index: number): SpinalDateValue {
+  public at(index: number): SpinalDateValue {
     if (index >= this.length.get() || index < 0) {
       return undefined;
     }
+    if (this.lstDate instanceof TypedArray) {
+      return {
+        date: this.lstDate.get(index),
+        // @ts-ignore
+        value: this.lstValue.get(index),
+      };
+    }
     return {
-      date : this.lstDate.get(index),
-      value : this.lstValue.get(index),
+      date: this.lstDate[index].get(),
+      value: this.lstValue[index].get(),
     };
   }
 
@@ -180,8 +188,8 @@ export class SpinalTimeSeriesArchiveDay extends Model {
    * For Tests - returns the TypedArrays' size
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  getActualBufferSize(): number {
-    return this.lstDate.size(0);
+  public getActualBufferSize(): number {
+    return this.lstDate.length;
   }
 
   /**
@@ -189,8 +197,20 @@ export class SpinalTimeSeriesArchiveDay extends Model {
    * @memberof SpinalTimeSeriesArchiveDay
    */
   private addBufferSizeLength() {
-    this.lstDate.resize([this.length.get() * 2]);
-    this.lstValue.resize([this.length.get() * 2]);
+    this.upgradeFromOldTimeSeries();
+    for (let idx = this.length.get(); idx < this.length.get() * 2; idx++) {
+      this.lstDate.push(0);
+      this.lstValue.push(0);
+    }
+  }
+
+  private upgradeFromOldTimeSeries() {
+    if (this.lstDate instanceof TypedArray) {
+      const tmpDate = this.lstDate;
+      const tmpValue = this.lstValue;
+      this.mod_attr('lstDate', tmpDate.get());
+      this.mod_attr('lstValue', tmpValue.get());
+    }
   }
 }
 

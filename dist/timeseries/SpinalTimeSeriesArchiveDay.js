@@ -23,10 +23,11 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SpinalTimeSeriesArchiveDay = void 0;
 const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
 /**
- * @property {spinal.TypedArray_Float64} lstDate
- * @property {spinal.TypedArray_Float64} lstValue
+ * @property {spinal.Lst<spinal.Val>} lstDate
+ * @property {spinal.Lst<spinal.Val>} lstValue
  * @property {spinal.Val} length
  * @property {spinal.Val} dateDay
  * @class SpinalTimeSeriesArchiveDay
@@ -38,23 +39,21 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
         if (spinal_core_connectorjs_type_1.FileSystem._sig_server === false)
             return;
         this.add_attr({
-            lstDate: new spinal_core_connectorjs_type_1.TypedArray_Float64(),
-            lstValue: new spinal_core_connectorjs_type_1.TypedArray_Float64(),
+            lstDate: new spinal_core_connectorjs_type_1.Lst(Array(initialBlockSize).fill(0)),
+            lstValue: new spinal_core_connectorjs_type_1.Lst(Array(initialBlockSize).fill(0)),
             dateDay: new Date().setUTCHours(0, 0, 0, 0),
             length: 0,
         });
-        this.lstDate.resize([initialBlockSize]);
-        this.lstValue.resize([initialBlockSize]);
     }
     /**
      * @param {number} data
      * @memberof SpinalTimeSeriesArchiveDay
      */
     push(data) {
-        if (this.lstDate.size(0) <= this.length.get())
+        this.upgradeFromOldTimeSeries();
+        if (this.lstDate.length <= this.length.get())
             this.addBufferSizeLength();
-        this.lstDate.set_val(this.length.get(), Date.now());
-        this.lstValue.set_val(this.length.get(), data);
+        this.setLstVal(this.length.get(), Date.now(), data);
         this.length.set(this.length.get() + 1);
     }
     /**
@@ -64,38 +63,40 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
      * @memberof SpinalTimeSeriesArchiveDay
      */
     insert(data, date) {
+        this.upgradeFromOldTimeSeries();
         const targetDate = new Date(date).getTime();
         const maxDate = new Date(this.dateDay.get()).setUTCHours(23, 59, 59, 999);
-        if (this.dateDay.get() <= targetDate && targetDate <= maxDate) {
-            if (this.lstDate.size(0) <= this.length.get())
-                this.addBufferSizeLength();
-            let index = 0;
-            for (; index < this.length.get(); index += 1) {
-                const element = this.lstDate.get(index);
-                if (element === targetDate) { // check exist
-                    this.lstValue.set_val([index], data);
-                    return true;
-                }
-                if (element > targetDate)
-                    break;
+        if (!(this.dateDay.get() <= targetDate && targetDate <= maxDate))
+            return false;
+        if (this.lstDate.length <= this.length.get())
+            this.addBufferSizeLength();
+        let index = 0;
+        for (; index < this.length.get(); index += 1) {
+            const element = this.lstDate[index].get();
+            if (element === targetDate) {
+                // check exist
+                this.lstValue[index].set(data);
+                return true;
             }
-            if (index === this.length.get()) {
-                this.lstDate.set_val(this.length.get(), targetDate);
-                this.lstValue.set_val(this.length.get(), data);
-                this.length.set(this.length.get() + 1);
-            }
-            else {
-                for (let idx = this.length.get() - 1; idx >= index; idx -= 1) {
-                    this.lstDate.set_val([idx + 1], this.lstDate.get(idx));
-                    this.lstValue.set_val([idx + 1], this.lstValue.get(idx));
-                }
-                this.lstDate.set_val([index], targetDate);
-                this.lstValue.set_val([index], data);
-                this.length.set(this.length.get() + 1);
-            }
-            return true;
+            if (element > targetDate)
+                break;
         }
-        return false;
+        if (index === this.length.get()) {
+            this.setLstVal(this.length.get(), targetDate, data);
+            this.length.set(this.length.get() + 1);
+        }
+        else {
+            for (let idx = this.length.get() - 1; idx >= index; idx -= 1) {
+                this.setLstVal(idx + 1, this.lstDate[idx].get(), this.lstValue[idx].get());
+            }
+            this.setLstVal(index, targetDate, data);
+            this.length.set(this.length.get() + 1);
+        }
+        return true;
+    }
+    setLstVal(idx, date, value) {
+        this.lstDate[idx].set(date);
+        this.lstValue[idx].set(value);
     }
     /**
      * @param {number} [index]
@@ -105,10 +106,23 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
     get(index) {
         if (typeof index === 'number')
             return this.at(index);
+        if (this.lstDate instanceof spinal_core_connectorjs_type_1.TypedArray)
+            return {
+                dateDay: this.dateDay.get(),
+                // @ts-ignore
+                date: this.lstDate.get().subarray(0, this.length.get()),
+                // @ts-ignore
+                value: this.lstValue.get().subarray(0, this.length.get()),
+            };
+        const date = [], value = [];
+        for (let idx = 0; idx < this.length.get(); idx++) {
+            date.push(this.lstDate[idx].get());
+            value.push(this.lstValue[idx].get());
+        }
         return {
             dateDay: this.dateDay.get(),
-            date: this.lstDate.get().subarray(0, this.length.get()),
-            value: this.lstValue.get().subarray(0, this.length.get()),
+            date,
+            value,
         };
     }
     /**
@@ -121,9 +135,16 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
         if (index >= this.length.get() || index < 0) {
             return undefined;
         }
+        if (this.lstDate instanceof spinal_core_connectorjs_type_1.TypedArray) {
+            return {
+                date: this.lstDate.get(index),
+                // @ts-ignore
+                value: this.lstValue.get(index),
+            };
+        }
         return {
-            date: this.lstDate.get(index),
-            value: this.lstValue.get(index),
+            date: this.lstDate[index].get(),
+            value: this.lstValue[index].get(),
         };
     }
     /**
@@ -131,15 +152,26 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
      * @memberof SpinalTimeSeriesArchiveDay
      */
     getActualBufferSize() {
-        return this.lstDate.size(0);
+        return this.lstDate.length;
     }
     /**
      * @private
      * @memberof SpinalTimeSeriesArchiveDay
      */
     addBufferSizeLength() {
-        this.lstDate.resize([this.length.get() * 2]);
-        this.lstValue.resize([this.length.get() * 2]);
+        this.upgradeFromOldTimeSeries();
+        for (let idx = this.length.get(); idx < this.length.get() * 2; idx++) {
+            this.lstDate.push(0);
+            this.lstValue.push(0);
+        }
+    }
+    upgradeFromOldTimeSeries() {
+        if (this.lstDate instanceof spinal_core_connectorjs_type_1.TypedArray) {
+            const tmpDate = this.lstDate;
+            const tmpValue = this.lstValue;
+            this.mod_attr('lstDate', tmpDate.get());
+            this.mod_attr('lstValue', tmpValue.get());
+        }
     }
 }
 exports.SpinalTimeSeriesArchiveDay = SpinalTimeSeriesArchiveDay;

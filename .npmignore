@@ -1,5 +1,6 @@
 test
-src
+doc
+docs
 Markdown Templates
 jsdoc2md.json
 tsconfig.json

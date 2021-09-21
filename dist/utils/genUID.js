@@ -1,3 +1,4 @@
+"use strict";
 /*
  * Copyright 2018 SpinalCom - www.spinalcom.com
  *
@@ -21,20 +22,19 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-
-function s4(): string {
-  return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.genUID = void 0;
+function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
 }
-
 /**
- * @param {string} constructor
  * @returns {string}
  */
-function genUID(constructor: string): string {
-  const res: string = `${constructor}-${s4() + s4()}-${s4()}-${s4()}-${s4()}-${
-      s4() + s4() + s4()}-${Date.now().toString(16)}`;
-
-  return res;
+function genUID() {
+    const res = `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4() + s4()}-${Date.now().toString(16)}`;
+    return res;
 }
-
-export { genUID };
+exports.genUID = genUID;
+//# sourceMappingURL=genUID.js.map

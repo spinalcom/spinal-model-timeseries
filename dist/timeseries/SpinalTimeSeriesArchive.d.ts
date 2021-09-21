@@ -1,5 +1,6 @@
 import { Model } from 'spinal-core-connectorjs_type';
-import { SpinalDateValue, SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
+import { SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
+import { SpinalDateValue } from '../interfaces/SpinalDateValue';
 /**
  * @class SpinalTimeSeriesArchive
  * @extends {Model}
@@ -23,7 +24,6 @@ declare class SpinalTimeSeriesArchive extends Model {
      * @memberof SpinalTimeSeriesArchive
      */
     static normalizeDate(date: number | string | Date): number;
-    loadPtr(ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay>): Promise<SpinalTimeSeriesArchiveDay>;
     /**
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
      * @memberof SpinalTimeSeriesArchive
@@ -66,6 +66,7 @@ declare class SpinalTimeSeriesArchive extends Model {
      * @memberof SpinalTimeSeriesArchive
      */
     dateExist(date: number | string | Date): boolean;
+    purgeArchive(maxDay: number): void;
 }
 export default SpinalTimeSeriesArchive;
 export { SpinalTimeSeriesArchive };

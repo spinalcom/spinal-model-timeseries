@@ -1,13 +1,15 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SpinalTimeSeriesArchiveDay = exports.SpinalTimeSeriesArchive = exports.SpinalTimeSeries = void 0;
 /*
  * Copyright 2018 SpinalCom - www.spinalcom.com
  *
@@ -32,34 +34,43 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
-const genUID_1 = require("../genUID");
+const genUID_1 = require("../utils/genUID");
+const loadPtr_1 = require("../utils/loadPtr");
 const SpinalTimeSeriesArchive_1 = require("./SpinalTimeSeriesArchive");
-exports.SpinalTimeSeriesArchive = SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive;
+Object.defineProperty(exports, "SpinalTimeSeriesArchive", { enumerable: true, get: function () { return SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive; } });
 const SpinalTimeSeriesArchiveDay_1 = require("./SpinalTimeSeriesArchiveDay");
-exports.SpinalTimeSeriesArchiveDay = SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay;
+Object.defineProperty(exports, "SpinalTimeSeriesArchiveDay", { enumerable: true, get: function () { return SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay; } });
 /**
  * @class SpinalTimeSeries
  * @property {spinal.Str} id
+ * @property {spinal.Val} maxDay
  * @property {spinal.Ptr<SpinalTimeSeriesArchive>} archive
  * @property {spinal.Ptr<SpinalTimeSeriesArchiveDay>} currentArchive
  * @extends {Model}
  */
 class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
     /**
-     *Creates an instance of SpinalTimeSeries.
+     * Creates an instance of SpinalTimeSeries.
+     * @param {number} [initialBlockSize=50]
+     * @param {number} [maxday=2] number of days to keep, default 2 days
+     * ```
+     * 0 = keep infinitly
+     * > 0 = nbr of day to keep
+     * ```
      * @memberof SpinalTimeSeries
      */
-    constructor() {
+    constructor(initialBlockSize = 50, maxday = 2) {
         super();
         this.archiveProm = null;
         this.currentProm = null;
-        this.loadPtrDictionary = new Map;
+        this.loadPtrDictionary = new Map();
         if (spinal_core_connectorjs_type_1.FileSystem._sig_server === false)
             return;
-        const archive = new SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive();
+        const archive = new SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive(initialBlockSize);
         this.archiveProm = Promise.resolve(archive);
         this.add_attr({
-            id: genUID_1.genUID('SpinalTimeSeries'),
+            id: (0, genUID_1.genUID)(),
+            maxday,
             archive: new spinal_core_connectorjs_type_1.Ptr(archive),
             currentArchive: new spinal_core_connectorjs_type_1.Ptr(0),
             currentData: 0,
@@ -107,6 +118,17 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
             return currentDay.get(len - 1);
         });
     }
+    setConfig(initialBlockSize, maxDay) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const archive = yield this.getArchive();
+            archive.initialBlockSize.set(initialBlockSize);
+            if (typeof this.maxDay === 'undefined') {
+                this.add_attr('maxDay', maxDay);
+            }
+            else
+                this.maxday.set(maxDay);
+        });
+    }
     /**
      * @param {number} value
      * @returns {Promise<void>}
@@ -123,12 +145,14 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
                 currentDay = yield archive.getTodayArchive();
             }
             const normalizedDate = SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive.normalizeDate(Date.now());
+            const archive = yield this.getArchive();
             if (currentDay.dateDay.get() !== normalizedDate) {
-                const archive = yield this.getArchive();
+                //const archive = await this.getArchive();
                 this.currentProm = archive.getTodayArchive();
                 currentDay = yield this.currentProm;
             }
             currentDay.push(value);
+            archive.purgeArchive(this.maxday.get());
         });
     }
     /**
@@ -142,6 +166,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
             const archive = yield this.getArchive();
             currentDay = yield archive.getOrCreateArchiveAtDate(date);
             currentDay.insert(value, date);
+            archive.purgeArchive(this.maxday.get());
         });
     }
     /**
@@ -156,46 +181,13 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         });
     }
     /**
-     * @param {(spinal.Ptr<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)} ptr
-     * @returns {(Promise<SpinalTimeSeriesArchiveDay|SpinalTimeSeriesArchive>)}
-     * @memberof SpinalTimeSeries
-     */
-    loadPtr(ptr) {
-        if (typeof ptr.data.value !== 'undefined' &&
-            this.loadPtrDictionary.has(ptr.data.value)) {
-            return this.loadPtrDictionary.get(ptr.data.value);
-        }
-        if (typeof ptr.data.model !== 'undefined') {
-            const res = Promise.resolve(ptr.data.model);
-            if (ptr.data.value) {
-                this.loadPtrDictionary.set(ptr.data.value, res);
-            }
-            return res;
-        }
-        if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
-            return Promise.reject('Load Ptr to 0');
-        }
-        if (typeof spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value] !== 'undefined') {
-            const res = Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value]);
-            this.loadPtrDictionary.set(ptr.data.value, res);
-            return Promise.resolve(res);
-        }
-        const res = new Promise((resolve) => {
-            ptr.load((element) => {
-                resolve(element);
-            });
-        });
-        this.loadPtrDictionary.set(ptr.data.value, res);
-        return res;
-    }
-    /**
      * @returns {Promise<SpinalTimeSeriesArchive>}
      * @memberof SpinalTimeSeries
      */
     getArchive() {
         if (this.archiveProm !== null)
             return this.archiveProm;
-        this.archiveProm = this.loadPtr(this.archive);
+        this.archiveProm = ((0, loadPtr_1.loadPtr)(this.loadPtrDictionary, this.archive));
         return this.archiveProm;
     }
     /**
@@ -205,7 +197,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
     getCurrentDay() {
         if (this.currentProm !== null)
             return this.currentProm;
-        this.currentProm = this.loadPtr(this.currentArchive);
+        this.currentProm = ((0, loadPtr_1.loadPtr)(this.loadPtrDictionary, this.currentArchive));
         return this.currentProm;
     }
     /**
@@ -257,6 +249,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         });
     }
 }
+exports.SpinalTimeSeries = SpinalTimeSeries;
 /**
  * @static
  * @type {string}
@@ -269,7 +262,6 @@ SpinalTimeSeries.relationName = 'hasTimeSeries';
  * @memberof SpinalTimeSeries
  */
 SpinalTimeSeries.nodeTypeName = 'TimeSeries';
-exports.SpinalTimeSeries = SpinalTimeSeries;
 spinal_core_connectorjs_type_1.spinalCore.register_models(SpinalTimeSeries);
 exports.default = SpinalTimeSeries;
 //# sourceMappingURL=SpinalTimeSeries.js.map

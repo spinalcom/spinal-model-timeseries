@@ -1,8 +1,28 @@
+/*
+ * Copyright 2021 SpinalCom - www.spinalcom.com
+ *
+ * This file is part of SpinalCore.
+ *
+ * Please read all of the following terms and conditions
+ * of the Free Software license Agreement ("Agreement")
+ * carefully.
+ *
+ * This Agreement is a legally binding contract between
+ * the Licensee (as defined below) and SpinalCom that
+ * sets forth the terms and conditions that govern your
+ * use of the Program. By installing and/or using the
+ * Program, you agree to abide by all the terms and
+ * conditions stated or referenced herein.
+ *
+ * If you do not agree to abide by these terms and
+ * conditions, do not demonstrate your acceptance and do
+ * not install or use the Program.
+ * You should have received a copy of the license along
+ * with this file. If not, see
+ * <http://resources.spinalcom.com/licenses.pdf>.
+ */
 
-import {
-  SpinalTimeSeriesArchive,
-  SpinalTimeSeriesArchiveDay,
-} from '../../dist/timeseries/SpinalTimeSeries';
+import { SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay } from '../../src';
 
 import * as tk from 'timekeeper';
 tk.freeze(1546532599592);
@@ -11,39 +31,42 @@ import * as assert from 'assert';
 
 describe('SpinalTimeSeriesArchive', () => {
   let instanceTest: SpinalTimeSeriesArchive;
-  describe('test on construnctor',  () => {
-
+  describe('test on construnctor', () => {
     it('Create with initilzed value', () => {
       instanceTest = new SpinalTimeSeriesArchive();
       const dates: spinal.Lst<spinal.Val> = instanceTest.getDates();
 
-      assert(instanceTest.initialBlockSize.get() === 50);
-      assert(dates.length === 0);
+      assert.strictEqual(instanceTest.initialBlockSize.get(), 50);
+      assert.strictEqual(dates.length, 0);
     });
 
     it('Set the "buffer" size manualy', () => {
       instanceTest = new SpinalTimeSeriesArchive(2);
       const dates: spinal.Lst<spinal.Val> = instanceTest.getDates();
 
-      assert(instanceTest.initialBlockSize.get() === 2);
-      assert(dates.length === 0);
+      assert.strictEqual(instanceTest.initialBlockSize.get(), 2);
+      assert.strictEqual(dates.length, 0);
     });
   });
 
-  describe('test on create SpinalTimeSeriesArchiveDay',  () => {
+  describe('test on create SpinalTimeSeriesArchiveDay', () => {
     it('Create today archive', async () => {
       await instanceTest.getTodayArchive();
       const dates: spinal.Lst<spinal.Val> = instanceTest.getDates();
-      assert(dates.length === 1);
+      assert.strictEqual(dates.length, 1);
     });
     it('Calling again should not create a new ArchiveDay', async () => {
       await instanceTest.getTodayArchive();
       const dates: spinal.Lst<spinal.Val> = instanceTest.getDates();
-      assert(dates.length === 1);
+      assert.strictEqual(dates.length, 1);
     });
     it('ArchiveDay initial buffer size ', async () => {
-      const today: SpinalTimeSeriesArchiveDay = await instanceTest.getTodayArchive();
-      assert(today.getActualBufferSize() === instanceTest.initialBlockSize.get());
+      const today: SpinalTimeSeriesArchiveDay =
+        await instanceTest.getTodayArchive();
+      assert.strictEqual(
+        today.getActualBufferSize(),
+        instanceTest.initialBlockSize.get()
+      );
     });
 
     it('jump to tomorow create automatically a new SpinalTimeSeriesArchiveDay', async () => {
@@ -51,14 +74,16 @@ describe('SpinalTimeSeriesArchive', () => {
       tomorowDate.setDate(tomorowDate.getDate() + 1);
       tk.travel(tomorowDate);
       await instanceTest.getTodayArchive();
-      assert(instanceTest.getDates().length === 2);
+      assert.strictEqual(instanceTest.getDates().length, 2);
     });
 
     it('test async getOrCreateArchiveAtDate', async () => {
-      const test = [instanceTest.getTodayArchive(), instanceTest.getTodayArchive()];
+      const test = [
+        instanceTest.getTodayArchive(),
+        instanceTest.getTodayArchive(),
+      ];
       const res = await Promise.all(test);
-      assert(res[0].model_id === res[1].model_id);
+      assert.strictEqual(res[0].model_id, res[1].model_id);
     });
-
   });
 });
