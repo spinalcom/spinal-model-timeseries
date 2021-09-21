@@ -52,14 +52,14 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
     /**
      * Creates an instance of SpinalTimeSeries.
      * @param {number} [initialBlockSize=50]
-     * @param {number} [maxday=2] number of days to keep, default 2 days
+     * @param {number} [maxDay=2] number of days to keep, default 2 days
      * ```
      * 0 = keep infinitly
      * > 0 = nbr of day to keep
      * ```
      * @memberof SpinalTimeSeries
      */
-    constructor(initialBlockSize = 50, maxday = 2) {
+    constructor(initialBlockSize = 50, maxDay = 2) {
         super();
         this.archiveProm = null;
         this.currentProm = null;
@@ -69,8 +69,8 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         const archive = new SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive(initialBlockSize);
         this.archiveProm = Promise.resolve(archive);
         this.add_attr({
-            id: (0, genUID_1.genUID)(),
-            maxday,
+            id: genUID_1.genUID(),
+            maxDay,
             archive: new spinal_core_connectorjs_type_1.Ptr(archive),
             currentArchive: new spinal_core_connectorjs_type_1.Ptr(0),
             currentData: 0,
@@ -126,7 +126,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
                 this.add_attr('maxDay', maxDay);
             }
             else
-                this.maxday.set(maxDay);
+                this.maxDay.set(maxDay);
         });
     }
     /**
@@ -152,7 +152,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
                 currentDay = yield this.currentProm;
             }
             currentDay.push(value);
-            archive.purgeArchive(this.maxday.get());
+            archive.purgeArchive(this.maxDay.get());
         });
     }
     /**
@@ -166,7 +166,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
             const archive = yield this.getArchive();
             currentDay = yield archive.getOrCreateArchiveAtDate(date);
             currentDay.insert(value, date);
-            archive.purgeArchive(this.maxday.get());
+            archive.purgeArchive(this.maxDay.get());
         });
     }
     /**
@@ -187,7 +187,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
     getArchive() {
         if (this.archiveProm !== null)
             return this.archiveProm;
-        this.archiveProm = ((0, loadPtr_1.loadPtr)(this.loadPtrDictionary, this.archive));
+        this.archiveProm = (loadPtr_1.loadPtr(this.loadPtrDictionary, this.archive));
         return this.archiveProm;
     }
     /**
@@ -197,7 +197,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
     getCurrentDay() {
         if (this.currentProm !== null)
             return this.currentProm;
-        this.currentProm = ((0, loadPtr_1.loadPtr)(this.loadPtrDictionary, this.currentArchive));
+        this.currentProm = (loadPtr_1.loadPtr(this.loadPtrDictionary, this.currentArchive));
         return this.currentProm;
     }
     /**

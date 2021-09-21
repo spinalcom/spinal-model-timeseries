@@ -73,19 +73,19 @@ class SpinalTimeSeries extends Model {
    * ```
    * @memberof SpinalTimeSeries
    */
-  public maxday: spinal.Val;
+  public maxDay: spinal.Val;
 
   /**
    * Creates an instance of SpinalTimeSeries.
    * @param {number} [initialBlockSize=50]
-   * @param {number} [maxday=2] number of days to keep, default 2 days
+   * @param {number} [maxDay=2] number of days to keep, default 2 days
    * ```
    * 0 = keep infinitly
    * > 0 = nbr of day to keep
    * ```
    * @memberof SpinalTimeSeries
    */
-  constructor(initialBlockSize: number = 50, maxday: number = 2) {
+  constructor(initialBlockSize: number = 50, maxDay: number = 2) {
     super();
     this.archiveProm = null;
     this.currentProm = null;
@@ -97,7 +97,7 @@ class SpinalTimeSeries extends Model {
 
     this.add_attr({
       id: genUID(),
-      maxday,
+      maxDay,
       archive: new Ptr(archive),
       currentArchive: new Ptr(0),
       currentData: 0,
@@ -154,7 +154,7 @@ class SpinalTimeSeries extends Model {
     archive.initialBlockSize.set(initialBlockSize);
     if (typeof this.maxDay === 'undefined') {
       this.add_attr('maxDay', maxDay);
-    } else this.maxday.set(maxDay);
+    } else this.maxDay.set(maxDay);
   }
 
   /**
@@ -180,7 +180,7 @@ class SpinalTimeSeries extends Model {
       currentDay = await this.currentProm;
     }
     currentDay.push(value);
-    archive.purgeArchive(this.maxday.get());
+    archive.purgeArchive(this.maxDay.get());
   }
 
   /**
@@ -196,7 +196,7 @@ class SpinalTimeSeries extends Model {
     const archive = await this.getArchive();
     currentDay = await archive.getOrCreateArchiveAtDate(date);
     currentDay.insert(value, date);
-    archive.purgeArchive(this.maxday.get());
+    archive.purgeArchive(this.maxDay.get());
   }
 
   /**

@@ -37,18 +37,18 @@ declare class SpinalTimeSeries extends Model {
      * ```
      * @memberof SpinalTimeSeries
      */
-    maxday: spinal.Val;
+    maxDay: spinal.Val;
     /**
      * Creates an instance of SpinalTimeSeries.
      * @param {number} [initialBlockSize=50]
-     * @param {number} [maxday=2] number of days to keep, default 2 days
+     * @param {number} [maxDay=2] number of days to keep, default 2 days
      * ```
      * 0 = keep infinitly
      * > 0 = nbr of day to keep
      * ```
      * @memberof SpinalTimeSeries
      */
-    constructor(initialBlockSize?: number, maxday?: number);
+    constructor(initialBlockSize?: number, maxDay?: number);
     /**
      * @param {(number|string|Date)} [start=0]
      * @param {(number|string|Date)} [end=Date.now()]
