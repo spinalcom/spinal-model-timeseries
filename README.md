@@ -10,6 +10,7 @@ doc/api : https://spinalcom.github.io/spinal-model-timeseries/
 const SpinalServiceTimeseries = new SpinalServiceTimeseries()
 await spinalServiceTimeseries.getMean( endpointNodeId, getDateFromLastHours(1) );
 ```
+_/!\ SpinalServiceTimeseries is suposed to have only one instance running_
 
 ## Some usefull method of the `SpinalServiceTimeseries`
 ### Add data to an Endpoint
