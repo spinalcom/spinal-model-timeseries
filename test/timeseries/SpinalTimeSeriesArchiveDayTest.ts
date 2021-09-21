@@ -27,7 +27,7 @@ import {
   SpinalTimeSeriesArchiveDay,
   SpinalDateValue,
   SpinalDateValueArray,
-} from '../../src/index';
+} from '../../src';
 import { FileSystem } from 'spinal-core-connectorjs_type';
 import * as assert from 'assert';
 import * as tk from 'timekeeper';

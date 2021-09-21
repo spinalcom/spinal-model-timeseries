@@ -22,10 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import {
-  SpinalTimeSeriesArchive,
-  SpinalTimeSeriesArchiveDay,
-} from '../../src/timeseries/SpinalTimeSeries';
+import { SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay } from '../../src';
 
 import * as tk from 'timekeeper';
 tk.freeze(1546532599592);

@@ -31,8 +31,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SpinalTimeSeriesArchiveDay = exports.SpinalTimeSeriesArchive = exports.SpinalTimeSeries = exports.SpinalServiceTimeseries = void 0;
+exports.SpinalTimeSeriesArchiveDay = exports.SpinalTimeSeriesArchive = exports.SpinalTimeSeries = exports.SpinalServiceTimeseries = exports.asyncGenToArray = void 0;
 const spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 const SpinalTimeSeries_1 = require("./timeseries/SpinalTimeSeries");
 Object.defineProperty(exports, "SpinalTimeSeries", { enumerable: true, get: function () { return SpinalTimeSeries_1.SpinalTimeSeries; } });
@@ -126,8 +133,6 @@ class SpinalServiceTimeseries {
             }
             const cfg = yield this.getConfigFormEndpoint(endpointNodeId);
             const promise = new Promise(this.getOrCreateTimeSeriesProm(endpointNodeId, cfg));
-            // get timeseries config from endpoints
-            // set config to timeseries
             this.timeSeriesDictionnary.set(endpointNodeId, promise);
             return promise;
         });
@@ -247,7 +252,143 @@ class SpinalServiceTimeseries {
     getFromIntervalTimeGen(timeseries, start = 0, end = Date.now()) {
         return timeseries.getFromIntervalTimeGen(start, end);
     }
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @return {Promise<SpinalTimeSeries>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getTimeSeries(endpointNodeId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.timeSeriesDictionnary.has(endpointNodeId)) {
+                return this.timeSeriesDictionnary.get(endpointNodeId);
+            }
+            const children = yield spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(endpointNodeId, [
+                SpinalTimeSeries_1.SpinalTimeSeries.relationName,
+            ]);
+            if (children.length === 0) {
+                return undefined;
+            }
+            const prom = children[0].element.load();
+            this.timeSeriesDictionnary.set(endpointNodeId, prom);
+            return prom;
+        });
+    }
+    /**
+     * @param {number} [numberOfHours=1]
+     * @return {TimeSeriesIntervalDate}
+     * @memberof SpinalServiceTimeseries
+     */
+    getDateFromLastHours(numberOfHours = 1) {
+        const end = Date.now();
+        const start = new Date();
+        start.setUTCHours(start.getUTCHours() - numberOfHours);
+        return { start, end };
+    }
+    /**
+     * @param {number} [numberOfDays=1]
+     * @return {TimeSeriesIntervalDate}
+     * @memberof SpinalServiceTimeseries
+     */
+    getDateFromLastDays(numberOfDays = 1) {
+        const end = Date.now();
+        const start = new Date();
+        start.setDate(start.getDate() - numberOfDays);
+        return { start, end };
+    }
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return {Promise<SpinalDateValue[]>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getData(endpointNodeId, timeSeriesIntervalDate) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const timeSeries = yield this.getTimeSeries(endpointNodeId);
+            if (!timeSeries)
+                throw new Error('endpoint have no timeseries');
+            return asyncGenToArray(yield this.getFromIntervalTimeGen(timeSeries, timeSeriesIntervalDate.start, timeSeriesIntervalDate.end));
+        });
+    }
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return {Promise<number>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getMean(endpointNodeId, timeSeriesIntervalDate) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.getData(endpointNodeId, timeSeriesIntervalDate);
+            return data.reduce((a, b) => a + b.value, 0) / data.length;
+        });
+    }
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return  {Promise<number>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getMax(endpointNodeId, timeSeriesIntervalDate) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.getData(endpointNodeId, timeSeriesIntervalDate);
+            if (data.length === 0)
+                return 0;
+            return data.reduce((a, b) => (a < b.value ? b.value : a), data[0].value);
+        });
+    }
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return {Promise<number>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getMin(endpointNodeId, timeSeriesIntervalDate) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.getData(endpointNodeId, timeSeriesIntervalDate);
+            if (data.length === 0)
+                return 0;
+            return data.reduce((a, b) => (a > b.value ? b.value : a), data[0].value);
+        });
+    }
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return {Promise<number>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getSum(endpointNodeId, timeSeriesIntervalDate) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.getData(endpointNodeId, timeSeriesIntervalDate);
+            return data.reduce((a, b) => a + b.value, 0);
+        });
+    }
 }
-exports.SpinalServiceTimeseries = SpinalServiceTimeseries;
 exports.default = SpinalServiceTimeseries;
+exports.SpinalServiceTimeseries = SpinalServiceTimeseries;
+/**
+ * @template T
+ * @param {AsyncIterableIterator<T>} it
+ * @return {Promise<T[]>}
+ */
+function asyncGenToArray(it) {
+    var it_1, it_1_1;
+    var e_1, _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        const res = [];
+        try {
+            for (it_1 = __asyncValues(it); it_1_1 = yield it_1.next(), !it_1_1.done;) {
+                const i = it_1_1.value;
+                res.push(i);
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (it_1_1 && !it_1_1.done && (_a = it_1.return)) yield _a.call(it_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        return res;
+    });
+}
+exports.asyncGenToArray = asyncGenToArray;
 //# sourceMappingURL=index.js.map

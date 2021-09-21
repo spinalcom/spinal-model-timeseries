@@ -1,9 +1,14 @@
-import { SpinalTimeSeries, SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay, SpinalDateValue, SpinalDateValueArray } from './timeseries/SpinalTimeSeries';
+import { SpinalTimeSeries, SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay } from './timeseries/SpinalTimeSeries';
+import { TimeSeriesEndpointCfg } from './interfaces/TimeSeriesEndpointCfg';
+import { TimeSeriesIntervalDate } from './interfaces/TimeSeriesIntervalDate';
+import { SpinalAttribute } from './interfaces/SpinalAttribute';
+import { SpinalDateValue } from './interfaces/SpinalDateValue';
+import { SpinalDateValueArray } from './interfaces/SpinalDateValueArray';
 declare type EndpointId = string;
 /**
  * @class SpinalServiceTimeseries
  */
-declare class SpinalServiceTimeseries {
+export default class SpinalServiceTimeseries {
     private timeSeriesDictionnary;
     /**
      *Creates an instance of SpinalServiceTimeseries.
@@ -80,6 +85,64 @@ declare class SpinalServiceTimeseries {
      * @memberof SpinalServiceTimeseries
      */
     getFromIntervalTimeGen(timeseries: SpinalTimeSeries, start?: string | number | Date, end?: string | number | Date): Promise<AsyncIterableIterator<SpinalDateValue>>;
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @return {Promise<SpinalTimeSeries>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getTimeSeries(endpointNodeId: EndpointId): Promise<SpinalTimeSeries>;
+    /**
+     * @param {number} [numberOfHours=1]
+     * @return {TimeSeriesIntervalDate}
+     * @memberof SpinalServiceTimeseries
+     */
+    getDateFromLastHours(numberOfHours?: number): TimeSeriesIntervalDate;
+    /**
+     * @param {number} [numberOfDays=1]
+     * @return {TimeSeriesIntervalDate}
+     * @memberof SpinalServiceTimeseries
+     */
+    getDateFromLastDays(numberOfDays?: number): TimeSeriesIntervalDate;
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return {Promise<SpinalDateValue[]>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getData(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDate): Promise<SpinalDateValue[]>;
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return {Promise<number>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getMean(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDate): Promise<number>;
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return  {Promise<number>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getMax(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDate): Promise<number>;
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return {Promise<number>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getMin(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDate): Promise<number>;
+    /**
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return {Promise<number>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getSum(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDate): Promise<number>;
 }
-export default SpinalServiceTimeseries;
-export { SpinalServiceTimeseries, SpinalTimeSeries, SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay, SpinalDateValue, SpinalDateValueArray, };
+/**
+ * @template T
+ * @param {AsyncIterableIterator<T>} it
+ * @return {Promise<T[]>}
+ */
+declare function asyncGenToArray<T>(it: AsyncIterableIterator<T>): Promise<T[]>;
+export { asyncGenToArray, SpinalServiceTimeseries, SpinalTimeSeries, SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay, TimeSeriesEndpointCfg, TimeSeriesIntervalDate, SpinalAttribute, SpinalDateValue, SpinalDateValueArray, };

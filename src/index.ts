@@ -31,28 +31,21 @@ import {
   SpinalTimeSeries,
   SpinalTimeSeriesArchive,
   SpinalTimeSeriesArchiveDay,
-  SpinalDateValue,
-  SpinalDateValueArray,
 } from './timeseries/SpinalTimeSeries';
 
 import { attributeService } from 'spinal-env-viewer-plugin-documentation-service';
+import { TimeSeriesEndpointCfg } from './interfaces/TimeSeriesEndpointCfg';
+import { TimeSeriesIntervalDate } from './interfaces/TimeSeriesIntervalDate';
+import { SpinalAttribute } from './interfaces/SpinalAttribute';
+import { SpinalDateValue } from './interfaces/SpinalDateValue';
+import { SpinalDateValueArray } from './interfaces/SpinalDateValueArray';
+
 type EndpointId = string;
-interface TimeSeriesEndpointCfg {
-  maxDay: number;
-  initialBlockSize: number;
-}
-interface SpinalAttribute extends spinal.Model {
-  label: spinal.Str;
-  value: spinal.Str;
-  date: spinal.Val;
-  type: spinal.Str;
-  unit: spinal.Str;
-}
 
 /**
  * @class SpinalServiceTimeseries
  */
-class SpinalServiceTimeseries {
+export default class SpinalServiceTimeseries {
   private timeSeriesDictionnary: Map<EndpointId, Promise<SpinalTimeSeries>>;
   /**
    *Creates an instance of SpinalServiceTimeseries.
@@ -143,11 +136,7 @@ class SpinalServiceTimeseries {
     const promise: Promise<SpinalTimeSeries> = new Promise(
       this.getOrCreateTimeSeriesProm(endpointNodeId, cfg)
     );
-    // get timeseries config from endpoints
-    // set config to timeseries
-
     this.timeSeriesDictionnary.set(endpointNodeId, promise);
-
     return promise;
   }
   private async getConfigFormEndpoint(
@@ -317,13 +306,154 @@ class SpinalServiceTimeseries {
   ): Promise<AsyncIterableIterator<SpinalDateValue>> {
     return timeseries.getFromIntervalTimeGen(start, end);
   }
+
+  /**
+   * @param {EndpointId} endpointNodeId
+   * @return {Promise<SpinalTimeSeries>}
+   * @memberof SpinalServiceTimeseries
+   */
+  async getTimeSeries(endpointNodeId: EndpointId): Promise<SpinalTimeSeries> {
+    if (this.timeSeriesDictionnary.has(endpointNodeId)) {
+      return this.timeSeriesDictionnary.get(endpointNodeId);
+    }
+    const children = await SpinalGraphService.getChildren(endpointNodeId, [
+      SpinalTimeSeries.relationName,
+    ]);
+    if (children.length === 0) {
+      return undefined;
+    }
+    const prom = <Promise<SpinalTimeSeries>>children[0].element.load();
+    this.timeSeriesDictionnary.set(endpointNodeId, prom);
+    return prom;
+  }
+
+  /**
+   * @param {number} [numberOfHours=1]
+   * @return {TimeSeriesIntervalDate}
+   * @memberof SpinalServiceTimeseries
+   */
+  public getDateFromLastHours(
+    numberOfHours: number = 1
+  ): TimeSeriesIntervalDate {
+    const end = Date.now();
+    const start = new Date();
+    start.setUTCHours(start.getUTCHours() - numberOfHours);
+    return { start, end };
+  }
+
+  /**
+   * @param {number} [numberOfDays=1]
+   * @return {TimeSeriesIntervalDate}
+   * @memberof SpinalServiceTimeseries
+   */
+  public getDateFromLastDays(numberOfDays: number = 1): TimeSeriesIntervalDate {
+    const end = Date.now();
+    const start = new Date();
+    start.setDate(start.getDate() - numberOfDays);
+    return { start, end };
+  }
+
+  /**
+   * @param {EndpointId} endpointNodeId
+   * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+   * @return {Promise<SpinalDateValue[]>}
+   * @memberof SpinalServiceTimeseries
+   */
+  public async getData(
+    endpointNodeId: EndpointId,
+    timeSeriesIntervalDate: TimeSeriesIntervalDate
+  ): Promise<SpinalDateValue[]> {
+    const timeSeries = await this.getTimeSeries(endpointNodeId);
+    if (!timeSeries) throw new Error('endpoint have no timeseries');
+    return asyncGenToArray<SpinalDateValue>(
+      await this.getFromIntervalTimeGen(
+        timeSeries,
+        timeSeriesIntervalDate.start,
+        timeSeriesIntervalDate.end
+      )
+    );
+  }
+
+  /**
+   * @param {EndpointId} endpointNodeId
+   * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+   * @return {Promise<number>}
+   * @memberof SpinalServiceTimeseries
+   */
+  async getMean(
+    endpointNodeId: EndpointId,
+    timeSeriesIntervalDate: TimeSeriesIntervalDate
+  ): Promise<number> {
+    const data = await this.getData(endpointNodeId, timeSeriesIntervalDate);
+    return data.reduce((a, b) => a + b.value, 0) / data.length;
+  }
+
+  /**
+   * @param {EndpointId} endpointNodeId
+   * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+   * @return  {Promise<number>}
+   * @memberof SpinalServiceTimeseries
+   */
+  async getMax(
+    endpointNodeId: EndpointId,
+    timeSeriesIntervalDate: TimeSeriesIntervalDate
+  ): Promise<number> {
+    const data = await this.getData(endpointNodeId, timeSeriesIntervalDate);
+    if (data.length === 0) return 0;
+    return data.reduce((a, b) => (a < b.value ? b.value : a), data[0].value);
+  }
+
+  /**
+   * @param {EndpointId} endpointNodeId
+   * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+   * @return {Promise<number>}
+   * @memberof SpinalServiceTimeseries
+   */
+  async getMin(
+    endpointNodeId: EndpointId,
+    timeSeriesIntervalDate: TimeSeriesIntervalDate
+  ): Promise<number> {
+    const data = await this.getData(endpointNodeId, timeSeriesIntervalDate);
+    if (data.length === 0) return 0;
+    return data.reduce((a, b) => (a > b.value ? b.value : a), data[0].value);
+  }
+
+  /**
+   * @param {EndpointId} endpointNodeId
+   * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+   * @return {Promise<number>}
+   * @memberof SpinalServiceTimeseries
+   */
+  async getSum(
+    endpointNodeId: EndpointId,
+    timeSeriesIntervalDate: TimeSeriesIntervalDate
+  ): Promise<number> {
+    const data = await this.getData(endpointNodeId, timeSeriesIntervalDate);
+    return data.reduce((a, b) => a + b.value, 0);
+  }
 }
-export default SpinalServiceTimeseries;
+
+/**
+ * @template T
+ * @param {AsyncIterableIterator<T>} it
+ * @return {Promise<T[]>}
+ */
+async function asyncGenToArray<T>(it: AsyncIterableIterator<T>): Promise<T[]> {
+  const res: T[] = [];
+  for await (const i of it) {
+    res.push(i);
+  }
+  return res;
+}
 export {
+  asyncGenToArray,
   SpinalServiceTimeseries,
   SpinalTimeSeries,
   SpinalTimeSeriesArchive,
   SpinalTimeSeriesArchiveDay,
+  TimeSeriesEndpointCfg,
+  TimeSeriesIntervalDate,
+  SpinalAttribute,
   SpinalDateValue,
   SpinalDateValueArray,
 };

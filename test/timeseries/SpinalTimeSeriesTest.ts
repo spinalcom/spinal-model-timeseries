@@ -22,16 +22,12 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import {
-  SpinalTimeSeries,
-  SpinalDateValue,
-} from '../../src/timeseries/SpinalTimeSeries';
-
 import * as tk from 'timekeeper';
 tk.freeze(1546532599592);
 
 import { testData, NBR_DAYS } from './testData';
 import * as assert from 'assert';
+import { SpinalTimeSeries, SpinalDateValue } from '../../src';
 
 describe('SpinalTimeSeries', () => {
   let instanceTest: SpinalTimeSeries;

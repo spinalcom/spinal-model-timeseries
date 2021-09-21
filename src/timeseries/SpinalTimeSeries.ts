@@ -29,8 +29,7 @@ import {
 } from 'spinal-core-connectorjs_type';
 import { genUID } from '../utils/genUID';
 import { loadPtr } from '../utils/loadPtr';
-import { SpinalDateValue } from './SpinalDateValue';
-import { SpinalDateValueArray } from './SpinalDateValueArray';
+import { SpinalDateValue } from '../interfaces/SpinalDateValue';
 import { SpinalTimeSeriesArchive } from './SpinalTimeSeriesArchive';
 import { SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
 
@@ -297,6 +296,4 @@ export {
   SpinalTimeSeries,
   SpinalTimeSeriesArchive,
   SpinalTimeSeriesArchiveDay,
-  SpinalDateValue,
-  SpinalDateValueArray,
 };

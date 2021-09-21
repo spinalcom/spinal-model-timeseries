@@ -24,7 +24,7 @@
 import { Model, Ptr, spinalCore } from 'spinal-core-connectorjs_type';
 import { loadPtr } from '../utils/loadPtr';
 import { SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
-import { SpinalDateValue } from './SpinalDateValue';
+import { SpinalDateValue } from '../interfaces/SpinalDateValue';
 
 /**
  * @class SpinalTimeSeriesArchive

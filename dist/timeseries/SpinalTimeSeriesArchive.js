@@ -98,7 +98,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
             const element = this.lstDate[index];
             const ptr = this.lstItem[index];
             if (element.get() === date) {
-                return loadPtr_1.loadPtr(this.loadPtrDictionary, ptr);
+                return (0, loadPtr_1.loadPtr)(this.loadPtrDictionary, ptr);
             }
         }
         const value = new SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
@@ -122,7 +122,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
             const element = this.lstDate[index];
             const ptr = this.lstItem[index];
             if (element.get() === date) {
-                return loadPtr_1.loadPtr(this.loadPtrDictionary, ptr);
+                return (0, loadPtr_1.loadPtr)(this.loadPtrDictionary, ptr);
             }
         }
         const value = new SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());

@@ -29,8 +29,8 @@ import {
   Lst,
   TypedArray,
 } from 'spinal-core-connectorjs_type';
-import { SpinalDateValue } from './SpinalDateValue';
-import { SpinalDateValueArray } from './SpinalDateValueArray';
+import { SpinalDateValue } from '../interfaces/SpinalDateValue';
+import { SpinalDateValueArray } from '../interfaces/SpinalDateValueArray';
 
 /**
  * @property {spinal.Lst<spinal.Val>} lstDate

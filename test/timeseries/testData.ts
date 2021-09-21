@@ -22,7 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { SpinalDateValueArray as SDVA } from '../../src/timeseries/SpinalTimeSeries';
+import { SpinalDateValueArray as SDVA } from '../../src';
 
 function createDay(dayToRemove: number) {
   const day = new Date();
