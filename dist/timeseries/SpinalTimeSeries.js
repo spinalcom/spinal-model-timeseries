@@ -69,7 +69,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         const archive = new SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive(initialBlockSize);
         this.archiveProm = Promise.resolve(archive);
         this.add_attr({
-            id: genUID_1.genUID(),
+            id: (0, genUID_1.genUID)(),
             maxDay,
             archive: new spinal_core_connectorjs_type_1.Ptr(archive),
             currentArchive: new spinal_core_connectorjs_type_1.Ptr(0),
@@ -187,7 +187,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
     getArchive() {
         if (this.archiveProm !== null)
             return this.archiveProm;
-        this.archiveProm = (loadPtr_1.loadPtr(this.loadPtrDictionary, this.archive));
+        this.archiveProm = ((0, loadPtr_1.loadPtr)(this.loadPtrDictionary, this.archive));
         return this.archiveProm;
     }
     /**
@@ -197,7 +197,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
     getCurrentDay() {
         if (this.currentProm !== null)
             return this.currentProm;
-        this.currentProm = (loadPtr_1.loadPtr(this.loadPtrDictionary, this.currentArchive));
+        this.currentProm = ((0, loadPtr_1.loadPtr)(this.loadPtrDictionary, this.currentArchive));
         return this.currentProm;
     }
     /**
