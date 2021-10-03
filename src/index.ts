@@ -385,7 +385,39 @@ export default class SpinalServiceTimeseries {
     timeSeriesIntervalDate: TimeSeriesIntervalDate
   ): Promise<number> {
     const data = await this.getData(endpointNodeId, timeSeriesIntervalDate);
-    return data.reduce((a, b) => a + b.value, 0) / data.length;
+    if (data.length === 0) return NaN;
+    if (data.length === 1) return data[0].value;
+    let res = 0;
+    const fullTime = data[data.length - 1].date - data[0].date;
+    for (let idx = 1, d1 = data[0]; idx < data.length; d1 = data[idx++]) {
+      // (((d1 + d2) / 2) * (t2 - t1)) / fulltime
+      res +=
+        (((d1.value + data[idx].value) / 2) * (data[idx].date - d1.date)) /
+        fullTime;
+    }
+    return res;
+  }
+
+  /**
+   * getIntegral | time in ms
+   * @param {EndpointId} endpointNodeId
+   * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+   * @return {Promise<number>}
+   * @memberof SpinalServiceTimeseries
+   */
+  async getIntegral(
+    endpointNodeId: EndpointId,
+    timeSeriesIntervalDate: TimeSeriesIntervalDate
+  ): Promise<number> {
+    const data = await this.getData(endpointNodeId, timeSeriesIntervalDate);
+    if (data.length === 0) return NaN;
+    if (data.length === 1) return data[0].value;
+    let res = 0;
+    for (let idx = 1, d1 = data[0]; idx < data.length; d1 = data[idx++]) {
+      // ((d1 + d2) / 2) * (t2 - t1)
+      res += ((d1.value + data[idx].value) / 2) * (data[idx].date - d1.date);
+    }
+    return res;
   }
 
   /**

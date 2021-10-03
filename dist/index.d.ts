@@ -118,6 +118,14 @@ export default class SpinalServiceTimeseries {
      */
     getMean(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDate): Promise<number>;
     /**
+     * getIntegral | time in ms
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return {Promise<number>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getIntegral(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDate): Promise<number>;
+    /**
      * @param {EndpointId} endpointNodeId
      * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
      * @return  {Promise<number>}
