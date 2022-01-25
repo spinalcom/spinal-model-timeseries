@@ -334,6 +334,32 @@ class SpinalServiceTimeseries {
         });
     }
     /**
+     * @param {EndpointId} endpointNodeId
+     * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @return {Promise<number>}
+     * @memberof SpinalServiceTimeseries
+     */
+    getMeanWithoutNegativeValues(endpointNodeId, timeSeriesIntervalDate) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const dataNotFiltred = yield this.getData(endpointNodeId, timeSeriesIntervalDate);
+            //exclude negative values from data
+            const data = dataNotFiltred.filter(x => { return x.value >= 0; });
+            if (data.length === 0)
+                return NaN;
+            if (data.length === 1)
+                return data[0].value;
+            let res = 0;
+            const fullTime = data[data.length - 1].date - data[0].date;
+            for (let idx = 1, d1 = data[0]; idx < data.length; d1 = data[idx++]) {
+                // (((d1 + d2) / 2) * (t2 - t1)) / fulltime
+                res +=
+                    (((d1.value + data[idx].value) / 2) * (data[idx].date - d1.date)) /
+                        fullTime;
+            }
+            return res;
+        });
+    }
+    /**
      * getIntegral | time in ms
      * @param {EndpointId} endpointNodeId
      * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
