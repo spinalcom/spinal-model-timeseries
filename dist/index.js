@@ -160,8 +160,8 @@ class SpinalServiceTimeseries {
                 maxDay = maxDay === null ? 2 : maxDay;
                 initialBlockSize = initialBlockSize === null ? 50 : initialBlockSize;
                 //
-                yield spinal_env_viewer_plugin_documentation_service_1.attributeService.addAttributeByCategoryName(node, 'default', 'timeSeries maxDay', maxDay.toLocaleString());
-                yield spinal_env_viewer_plugin_documentation_service_1.attributeService.addAttributeByCategoryName(node, 'default', 'timeSeries initialBlockSize', initialBlockSize.toLocaleString());
+                yield spinal_env_viewer_plugin_documentation_service_1.attributeService.addAttributeByCategoryName(node, 'default', 'timeSeries maxDay', maxDay.toString());
+                yield spinal_env_viewer_plugin_documentation_service_1.attributeService.addAttributeByCategoryName(node, 'default', 'timeSeries initialBlockSize', initialBlockSize.toString());
                 return {
                     maxDay: maxDay,
                     initialBlockSize: initialBlockSize,

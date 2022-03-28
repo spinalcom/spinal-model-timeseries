@@ -169,13 +169,13 @@ export default class SpinalServiceTimeseries {
         node,
         'default',
         'timeSeries maxDay',
-        maxDay.toLocaleString()
+        maxDay.toString()
       );
       await attributeService.addAttributeByCategoryName(
         node,
         'default',
         'timeSeries initialBlockSize',
-        initialBlockSize.toLocaleString()
+        initialBlockSize.toString()
       );
 
       return {
