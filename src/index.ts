@@ -36,7 +36,7 @@ import {
 import { attributeService } from 'spinal-env-viewer-plugin-documentation-service';
 import { TimeSeriesEndpointCfg } from './interfaces/TimeSeriesEndpointCfg';
 import { TimeSeriesIntervalDate } from './interfaces/TimeSeriesIntervalDate';
-import { SpinalAttribute } from './interfaces/SpinalAttribute';
+import { SpinalAttribute } from 'spinal-models-documentation';
 import { SpinalDateValue } from './interfaces/SpinalDateValue';
 import { SpinalDateValueArray } from './interfaces/SpinalDateValueArray';
 
@@ -153,10 +153,10 @@ export default class SpinalServiceTimeseries {
       for (const attr of attrs) {
         switch (attr.label.get()) {
           case 'timeSeries maxDay':
-            maxDay = parseInt(attr.value.get());
+            maxDay = parseInt(attr.value.get().toString());
             break;
           case 'timeSeries initialBlockSize':
-            initialBlockSize = parseInt(attr.value.get());
+            initialBlockSize = parseInt(attr.value.get().toString());
             break;
           default:
             break;

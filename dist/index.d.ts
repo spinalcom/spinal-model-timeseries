@@ -1,7 +1,7 @@
 import { SpinalTimeSeries, SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay } from './timeseries/SpinalTimeSeries';
 import { TimeSeriesEndpointCfg } from './interfaces/TimeSeriesEndpointCfg';
 import { TimeSeriesIntervalDate } from './interfaces/TimeSeriesIntervalDate';
-import { SpinalAttribute } from './interfaces/SpinalAttribute';
+import { SpinalAttribute } from 'spinal-models-documentation';
 import { SpinalDateValue } from './interfaces/SpinalDateValue';
 import { SpinalDateValueArray } from './interfaces/SpinalDateValueArray';
 declare type EndpointId = string;

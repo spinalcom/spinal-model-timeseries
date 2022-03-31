@@ -39,13 +39,15 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SpinalTimeSeriesArchiveDay = exports.SpinalTimeSeriesArchive = exports.SpinalTimeSeries = exports.SpinalServiceTimeseries = exports.asyncGenToArray = void 0;
+exports.SpinalAttribute = exports.SpinalTimeSeriesArchiveDay = exports.SpinalTimeSeriesArchive = exports.SpinalTimeSeries = exports.SpinalServiceTimeseries = exports.asyncGenToArray = void 0;
 const spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 const SpinalTimeSeries_1 = require("./timeseries/SpinalTimeSeries");
 Object.defineProperty(exports, "SpinalTimeSeries", { enumerable: true, get: function () { return SpinalTimeSeries_1.SpinalTimeSeries; } });
 Object.defineProperty(exports, "SpinalTimeSeriesArchive", { enumerable: true, get: function () { return SpinalTimeSeries_1.SpinalTimeSeriesArchive; } });
 Object.defineProperty(exports, "SpinalTimeSeriesArchiveDay", { enumerable: true, get: function () { return SpinalTimeSeries_1.SpinalTimeSeriesArchiveDay; } });
 const spinal_env_viewer_plugin_documentation_service_1 = require("spinal-env-viewer-plugin-documentation-service");
+const spinal_models_documentation_1 = require("spinal-models-documentation");
+Object.defineProperty(exports, "SpinalAttribute", { enumerable: true, get: function () { return spinal_models_documentation_1.SpinalAttribute; } });
 /**
  * @class SpinalServiceTimeseries
  */
@@ -148,10 +150,10 @@ class SpinalServiceTimeseries {
                 for (const attr of attrs) {
                     switch (attr.label.get()) {
                         case 'timeSeries maxDay':
-                            maxDay = parseInt(attr.value.get());
+                            maxDay = parseInt(attr.value.get().toString());
                             break;
                         case 'timeSeries initialBlockSize':
-                            initialBlockSize = parseInt(attr.value.get());
+                            initialBlockSize = parseInt(attr.value.get().toString());
                             break;
                         default:
                             break;
