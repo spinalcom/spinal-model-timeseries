@@ -68,7 +68,8 @@ class SpinalTimeSeries extends Model {
   /**
    * @type {spinal.Val} number of days to keep, default 2 days
    * ```
-   * 0 = keep infinitly
+   * < 0 = keep infinitly
+   * 0 = no timeseries
    * > 0 = nbr of day to keep
    * ```
    * @memberof SpinalTimeSeries
@@ -135,6 +136,12 @@ class SpinalTimeSeries extends Model {
    * @memberof SpinalTimeSeries
    */
   public async getCurrent(): Promise<SpinalDateValue> {
+    if (this.maxDay.get() === 0) {
+      return Promise.resolve({
+        date: NaN,
+        value: NaN,
+      });
+    }
     let currentDay: SpinalTimeSeriesArchiveDay;
     try {
       currentDay = await this.getCurrentDay();
@@ -163,6 +170,11 @@ class SpinalTimeSeries extends Model {
    * @memberof SpinalTimeSeries
    */
   public async push(value: number): Promise<void> {
+    if (this.maxDay.get() === 0) {
+      const archive = await this.getArchive();
+      archive.purgeArchive(this.maxDay.get());
+      return;
+    }
     let currentDay: SpinalTimeSeriesArchiveDay;
     try {
       currentDay = await this.getCurrentDay();
@@ -194,8 +206,10 @@ class SpinalTimeSeries extends Model {
   ): Promise<void> {
     let currentDay: SpinalTimeSeriesArchiveDay;
     const archive = await this.getArchive();
-    currentDay = await archive.getOrCreateArchiveAtDate(date);
-    currentDay.insert(value, date);
+    if (this.maxDay.get() !== 0) {
+      currentDay = await archive.getOrCreateArchiveAtDate(date);
+      currentDay.insert(value, date);
+    }
     archive.purgeArchive(this.maxDay.get());
   }
 

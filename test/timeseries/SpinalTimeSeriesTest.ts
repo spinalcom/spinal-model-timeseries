@@ -89,4 +89,31 @@ describe('SpinalTimeSeries', () => {
       assert.strictEqual(size, 6);
     });
   });
+  describe('test set maxday = 0', () => {
+    it('set old instance with config new maxDay', () => {
+      instanceTest.setConfig(500, 0);
+    });
+    it('test get last 24h should stay at 6', async () => {
+      const datas: AsyncIterableIterator<SpinalDateValue> =
+        await instanceTest.getDataFromLast24Hours();
+      let size = 0;
+      for await (const data of datas) {
+        size += 1;
+      }
+      assert.strictEqual(size, 6);
+    });
+    it('push a data', async () => {
+      tk.travel(Date.now() + 50);
+      await instanceTest.push(42);
+    });
+    it('test get last 24h now should equal 0', async () => {
+      const datas: AsyncIterableIterator<SpinalDateValue> =
+        await instanceTest.getDataFromLast24Hours();
+      let size = 0;
+      for await (const data of datas) {
+        size += 1;
+      }
+      assert.strictEqual(size, 0);
+    });
+  });
 });

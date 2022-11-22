@@ -262,6 +262,9 @@ class SpinalTimeSeriesArchive extends Model {
         this.lstDate.splice(id, 1);
         this.lstItem.splice(id, 1);
       }
+    } else if (maxDay === 0) {
+      this.lstDate.clear();
+      this.lstItem.clear();
     }
   }
 }

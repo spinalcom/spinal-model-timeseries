@@ -203,7 +203,7 @@ class SpinalServiceTimeseries {
     }
     /**
      * @param {SpinalTimeSeries} timeseries
-     * @return {*}  {Promise<SpinalDateValue>}
+     * @return {Promise<SpinalDateValue>}
      * @memberof SpinalServiceTimeseries
      */
     getCurrent(timeseries) {
@@ -345,7 +345,9 @@ class SpinalServiceTimeseries {
         return __awaiter(this, void 0, void 0, function* () {
             const dataNotFiltred = yield this.getData(endpointNodeId, timeSeriesIntervalDate);
             //exclude negative values from data
-            const data = dataNotFiltred.filter(x => { return x.value >= 0; });
+            const data = dataNotFiltred.filter((x) => {
+                return x.value >= 0;
+            });
             if (data.length === 0)
                 return NaN;
             if (data.length === 1)
@@ -432,20 +434,27 @@ exports.SpinalServiceTimeseries = SpinalServiceTimeseries;
  * @return {Promise<T[]>}
  */
 function asyncGenToArray(it) {
-    var it_1, it_1_1;
-    var e_1, _a;
+    var _a, it_1, it_1_1;
+    var _b, e_1, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         const res = [];
         try {
-            for (it_1 = __asyncValues(it); it_1_1 = yield it_1.next(), !it_1_1.done;) {
-                const i = it_1_1.value;
-                res.push(i);
+            for (_a = true, it_1 = __asyncValues(it); it_1_1 = yield it_1.next(), _b = it_1_1.done, !_b;) {
+                _d = it_1_1.value;
+                _a = false;
+                try {
+                    const i = _d;
+                    res.push(i);
+                }
+                finally {
+                    _a = true;
+                }
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
         finally {
             try {
-                if (it_1_1 && !it_1_1.done && (_a = it_1.return)) yield _a.call(it_1);
+                if (!_a && !_b && (_c = it_1.return)) yield _c.call(it_1);
             }
             finally { if (e_1) throw e_1.error; }
         }

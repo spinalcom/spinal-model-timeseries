@@ -4,7 +4,7 @@ import { TimeSeriesIntervalDate } from './interfaces/TimeSeriesIntervalDate';
 import { SpinalAttribute } from 'spinal-models-documentation';
 import { SpinalDateValue } from './interfaces/SpinalDateValue';
 import { SpinalDateValueArray } from './interfaces/SpinalDateValueArray';
-declare type EndpointId = string;
+type EndpointId = string;
 /**
  * @class SpinalServiceTimeseries
  */
@@ -46,7 +46,7 @@ export default class SpinalServiceTimeseries {
     private getOrCreateTimeSeriesProm;
     /**
      * @param {SpinalTimeSeries} timeseries
-     * @return {*}  {Promise<SpinalDateValue>}
+     * @return {Promise<SpinalDateValue>}
      * @memberof SpinalServiceTimeseries
      */
     getCurrent(timeseries: SpinalTimeSeries): Promise<SpinalDateValue>;

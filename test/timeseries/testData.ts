@@ -28,7 +28,7 @@ function createDay(dayToRemove: number) {
   const day = new Date();
   return day.setDate(day.getDate() - dayToRemove);
 }
-const days = [];
+const days: number[] = [];
 let index: number;
 for (index = 0; index < 8; index += 1) {
   days.push(createDay(8 - index));

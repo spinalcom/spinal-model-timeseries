@@ -235,7 +235,7 @@ export default class SpinalServiceTimeseries {
 
   /**
    * @param {SpinalTimeSeries} timeseries
-   * @return {*}  {Promise<SpinalDateValue>}
+   * @return {Promise<SpinalDateValue>}
    * @memberof SpinalServiceTimeseries
    */
   public getCurrent(timeseries: SpinalTimeSeries): Promise<SpinalDateValue> {
@@ -404,12 +404,19 @@ export default class SpinalServiceTimeseries {
    * @return {Promise<number>}
    * @memberof SpinalServiceTimeseries
    */
-   async getMeanWithoutNegativeValues(endpointNodeId: EndpointId,
-    timeSeriesIntervalDate: TimeSeriesIntervalDate): Promise<number> {
-    const dataNotFiltred = await this.getData(endpointNodeId, timeSeriesIntervalDate);
+  async getMeanWithoutNegativeValues(
+    endpointNodeId: EndpointId,
+    timeSeriesIntervalDate: TimeSeriesIntervalDate
+  ): Promise<number> {
+    const dataNotFiltred = await this.getData(
+      endpointNodeId,
+      timeSeriesIntervalDate
+    );
     //exclude negative values from data
-    const data = dataNotFiltred.filter(x =>{ return x.value>=0;});
-    
+    const data = dataNotFiltred.filter((x) => {
+      return x.value >= 0;
+    });
+
     if (data.length === 0) return NaN;
     if (data.length === 1) return data[0].value;
     let res = 0;
@@ -421,7 +428,7 @@ export default class SpinalServiceTimeseries {
         fullTime;
     }
     return res;
-}
+  }
   /**
    * getIntegral | time in ms
    * @param {EndpointId} endpointNodeId

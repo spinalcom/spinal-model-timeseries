@@ -106,6 +106,12 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
      */
     getCurrent() {
         return __awaiter(this, void 0, void 0, function* () {
+            if (this.maxDay.get() === 0) {
+                return Promise.resolve({
+                    date: NaN,
+                    value: NaN,
+                });
+            }
             let currentDay;
             try {
                 currentDay = yield this.getCurrentDay();
@@ -136,6 +142,11 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
      */
     push(value) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (this.maxDay.get() === 0) {
+                const archive = yield this.getArchive();
+                archive.purgeArchive(this.maxDay.get());
+                return;
+            }
             let currentDay;
             try {
                 currentDay = yield this.getCurrentDay();
@@ -164,8 +175,10 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
         return __awaiter(this, void 0, void 0, function* () {
             let currentDay;
             const archive = yield this.getArchive();
-            currentDay = yield archive.getOrCreateArchiveAtDate(date);
-            currentDay.insert(value, date);
+            if (this.maxDay.get() !== 0) {
+                currentDay = yield archive.getOrCreateArchiveAtDate(date);
+                currentDay.insert(value, date);
+            }
             archive.purgeArchive(this.maxDay.get());
         });
     }

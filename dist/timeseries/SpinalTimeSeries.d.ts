@@ -32,7 +32,8 @@ declare class SpinalTimeSeries extends Model {
     /**
      * @type {spinal.Val} number of days to keep, default 2 days
      * ```
-     * 0 = keep infinitly
+     * < 0 = keep infinitly
+     * 0 = no timeseries
      * > 0 = nbr of day to keep
      * ```
      * @memberof SpinalTimeSeries
