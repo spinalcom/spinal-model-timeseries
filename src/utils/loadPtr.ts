@@ -21,7 +21,7 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-import { FileSystem } from 'spinal-core-connectorjs_type';
+import { FileSystem } from 'spinal-core-connectorjs';
 
 export function loadPtr<T extends spinal.Model>(
   loadPtrDictionary: Map<number, Promise<T>>,
@@ -51,11 +51,7 @@ export function loadPtr<T extends spinal.Model>(
     loadPtrDictionary.set(ptr.data.value, res);
     return Promise.resolve(res);
   }
-  const res: Promise<T> = new Promise((resolve) => {
-    ptr.load((element) => {
-      resolve(element);
-    });
-  });
+  const res: Promise<T> = ptr.load();
   loadPtrDictionary.set(ptr.data.value, res);
   return res;
 }

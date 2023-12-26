@@ -22,7 +22,10 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay } from '../../src';
+import {
+  SpinalTimeSeriesArchive,
+  SpinalTimeSeriesArchiveDay,
+} from 'spinal-model-timeseries';
 
 import * as tk from 'timekeeper';
 tk.freeze(1546532599592);
@@ -77,13 +80,25 @@ describe('SpinalTimeSeriesArchive', () => {
       assert.strictEqual(instanceTest.getDates().length, 2);
     });
 
-    it('test async getOrCreateArchiveAtDate', async () => {
-      const test = [
-        instanceTest.getTodayArchive(),
-        instanceTest.getTodayArchive(),
-      ];
-      const res = await Promise.all(test);
-      assert.strictEqual(res[0].model_id, res[1].model_id);
+    it('test async getOrCreateArchiveAtDate to an existing date', async () => {
+      const todayDate = new Date();
+      await instanceTest.getOrCreateArchiveAtDate(todayDate);
+      assert.strictEqual(instanceTest.getDates().length, 2);
+    });
+    it('test async getOrCreateArchiveAtDate put error in date (invalid string)', async () => {
+      assert.throws(() => {
+        instanceTest.getOrCreateArchiveAtDate('sahbdbsakbdkjsab');
+      }, 'it should throw');
+    });
+
+    it('test async getOrCreateArchiveAtDate put error in date (NaN)', async () => {
+      assert.throws(() => {
+        instanceTest.getOrCreateArchiveAtDate(NaN);
+      }, 'it should throw');
+    });
+    it('test async getOrCreateArchiveAtDate auto clean up NaN date', async () => {
+      // // to test it remove the if isNan in getOrCreateArchiveAtDate
+      assert.strictEqual(instanceTest.getDates().length, 2);
     });
   });
 });

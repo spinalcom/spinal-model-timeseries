@@ -1,19 +1,19 @@
-import { Model } from 'spinal-core-connectorjs_type';
+import { Model, type Lst, type Val } from 'spinal-core-connectorjs';
 import { SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
-import { SpinalDateValue } from '../interfaces/SpinalDateValue';
+import type { SpinalDateValue } from '../interfaces/SpinalDateValue';
 /**
  * @class SpinalTimeSeriesArchive
  * @extends {Model}
  */
-declare class SpinalTimeSeriesArchive extends Model {
+export declare class SpinalTimeSeriesArchive extends Model {
     private lstDate;
     private lstItem;
-    initialBlockSize: spinal.Val;
+    initialBlockSize: Val;
     private itemLoadedDictionary;
     private loadPtrDictionary;
     /**
      *Creates an instance of SpinalTimeSeriesArchive.
-     * @param {number} [initialBlockSize=50]
+     * @param {number} [initialBlockSize=SpinalTimeSeriesConfig.INIT_BLOCK_SIZE]
      * @memberof SpinalTimeSeriesArchive
      */
     constructor(initialBlockSize?: number);
@@ -34,6 +34,10 @@ declare class SpinalTimeSeriesArchive extends Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getOrCreateArchiveAtDate(atDate: number | string | Date): Promise<SpinalTimeSeriesArchiveDay>;
+    /**
+     * @memberof SpinalTimeSeriesArchive
+     */
+    cleanUpNaNDates(): void;
     /**
      * @param {(number|string)} [start=0]
      * @param {(number|string)} [end=Date.now()]
@@ -56,10 +60,10 @@ declare class SpinalTimeSeriesArchive extends Model {
      */
     getArchiveAtDate(date: number | string | Date): Promise<SpinalTimeSeriesArchiveDay>;
     /**
-     * @returns {spinal.Lst<spinal.Val>}
+     * @returns {Lst<Val>}
      * @memberof SpinalTimeSeriesArchive
      */
-    getDates(): spinal.Lst<spinal.Val>;
+    getDates(): Lst<Val>;
     /**
      * @param {(number | string | Date)} date
      * @returns {boolean}
@@ -68,5 +72,3 @@ declare class SpinalTimeSeriesArchive extends Model {
     dateExist(date: number | string | Date): boolean;
     purgeArchive(maxDay: number): void;
 }
-export default SpinalTimeSeriesArchive;
-export { SpinalTimeSeriesArchive };

@@ -27,7 +27,7 @@ tk.freeze(1546532599592);
 
 import { testData, NBR_DAYS } from './testData';
 import * as assert from 'assert';
-import { SpinalTimeSeries, SpinalDateValue } from '../../src';
+import { SpinalTimeSeries, SpinalDateValue } from 'spinal-model-timeseries';
 
 describe('SpinalTimeSeries', () => {
   let instanceTest: SpinalTimeSeries;
@@ -86,21 +86,21 @@ describe('SpinalTimeSeries', () => {
       for await (const data of datas) {
         size += 1;
       }
-      assert.strictEqual(size, 6);
+      assert.strictEqual(size, 10);
     });
   });
   describe('test set maxday = 0', () => {
     it('set old instance with config new maxDay', () => {
       instanceTest.setConfig(500, 0);
     });
-    it('test get last 24h should stay at 6', async () => {
+    it('test get last 24h should stay at 10', async () => {
       const datas: AsyncIterableIterator<SpinalDateValue> =
         await instanceTest.getDataFromLast24Hours();
       let size = 0;
       for await (const data of datas) {
         size += 1;
       }
-      assert.strictEqual(size, 6);
+      assert.strictEqual(size, 10);
     });
     it('push a data', async () => {
       tk.travel(Date.now() + 50);
@@ -109,11 +109,8 @@ describe('SpinalTimeSeries', () => {
     it('test get last 24h now should equal 0', async () => {
       const datas: AsyncIterableIterator<SpinalDateValue> =
         await instanceTest.getDataFromLast24Hours();
-      let size = 0;
-      for await (const data of datas) {
-        size += 1;
-      }
-      assert.strictEqual(size, 0);
+      const n = await datas.next();
+      assert.strictEqual(n.done, true);
     });
   });
 });

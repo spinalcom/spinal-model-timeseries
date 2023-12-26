@@ -28,33 +28,34 @@ import {
   spinalCore,
   Lst,
   TypedArray,
-} from 'spinal-core-connectorjs_type';
-import { SpinalDateValue } from '../interfaces/SpinalDateValue';
-import { SpinalDateValueArray } from '../interfaces/SpinalDateValueArray';
+  type Val,
+} from 'spinal-core-connectorjs';
+import type { SpinalDateValue } from '../interfaces/SpinalDateValue';
+import type { SpinalDateValueArray } from '../interfaces/SpinalDateValueArray';
 
 /**
- * @property {spinal.Lst<spinal.Val>} lstDate
- * @property {spinal.Lst<spinal.Val>} lstValue
- * @property {spinal.Val} length
- * @property {spinal.Val} dateDay
+ * @property {Lst<Val>} lstDate
+ * @property {Lst<Val>} lstValue
+ * @property {Val} length
+ * @property {Val} dateDay
  * @class SpinalTimeSeriesArchiveDay
  * @extends {Model}
  */
 export class SpinalTimeSeriesArchiveDay extends Model {
   /**
    * @private
-   * @type {spinal.Lst<spinal.Val>}
+   * @type {Lst<Val>}
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  private lstDate: spinal.Lst<spinal.Val>;
+  private lstDate: Lst<Val>;
   /**
    * @private
-   * @type {spinal.Lst<spinal.Val>}
+   * @type {Lst<Val>}
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  private lstValue: spinal.Lst<spinal.Val>;
-  public length: spinal.Val;
-  public dateDay: spinal.Val;
+  private lstValue: Lst<Val>;
+  public length: Val;
+  public dateDay: Val;
 
   constructor(initialBlockSize: number = 50) {
     super();
@@ -213,7 +214,5 @@ export class SpinalTimeSeriesArchiveDay extends Model {
     }
   }
 }
-
-export default SpinalTimeSeriesArchiveDay;
 
 spinalCore.register_models(SpinalTimeSeriesArchiveDay);

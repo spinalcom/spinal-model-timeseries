@@ -52,20 +52,21 @@ exports.SpinalTimeSeriesArchive = void 0;
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
+const spinal_core_connectorjs_1 = require("spinal-core-connectorjs");
 const loadPtr_1 = require("../utils/loadPtr");
 const SpinalTimeSeriesArchiveDay_1 = require("./SpinalTimeSeriesArchiveDay");
+const SpinalTimeSeriesConfig_1 = require("../SpinalTimeSeriesConfig");
 /**
  * @class SpinalTimeSeriesArchive
  * @extends {Model}
  */
-class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
+class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
     /**
      *Creates an instance of SpinalTimeSeriesArchive.
-     * @param {number} [initialBlockSize=50]
+     * @param {number} [initialBlockSize=SpinalTimeSeriesConfig.INIT_BLOCK_SIZE]
      * @memberof SpinalTimeSeriesArchive
      */
-    constructor(initialBlockSize = 50) {
+    constructor(initialBlockSize = SpinalTimeSeriesConfig_1.SpinalTimeSeriesConfig.INIT_BLOCK_SIZE) {
         super({
             initialBlockSize,
             lstDate: [],
@@ -88,6 +89,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getTodayArchive() {
+        this.cleanUpNaNDates();
         const now = Date.now();
         const date = SpinalTimeSeriesArchive.normalizeDate(now);
         const spinalTimeSeriesArchiveDay = this.itemLoadedDictionary.get(date);
@@ -103,7 +105,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         }
         const value = new SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
         this.lstDate.push(date);
-        this.lstItem.push(new spinal_core_connectorjs_type_1.Ptr(value));
+        this.lstItem.push(new spinal_core_connectorjs_1.Ptr(value));
         const prom = Promise.resolve(value);
         this.itemLoadedDictionary.set(date, prom);
         return prom;
@@ -113,7 +115,11 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getOrCreateArchiveAtDate(atDate) {
+        this.cleanUpNaNDates();
         const date = SpinalTimeSeriesArchive.normalizeDate(atDate);
+        if (isNaN(date)) {
+            throw `the value [${atDate}] is not a valid date`;
+        }
         const spinalTimeSeriesArchiveDay = this.itemLoadedDictionary.get(date);
         if (spinalTimeSeriesArchiveDay !== undefined) {
             return spinalTimeSeriesArchiveDay;
@@ -137,10 +143,26 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
             index += 1;
         }
         this.lstDate.insert(index, [date]);
-        this.lstItem.insert(index, [new spinal_core_connectorjs_type_1.Ptr(value)]);
+        this.lstItem.insert(index, [new spinal_core_connectorjs_1.Ptr(value)]);
         const prom = Promise.resolve(value);
         this.itemLoadedDictionary.set(date, prom);
         return prom;
+    }
+    /**
+     * @memberof SpinalTimeSeriesArchive
+     */
+    cleanUpNaNDates() {
+        let idx = 0;
+        while (idx < this.lstDate.length) {
+            const date = this.lstDate[idx];
+            if (date && isNaN(date.get())) {
+                this.lstDate.splice(idx, 1);
+                this.lstItem.splice(idx, 1);
+            }
+            else {
+                ++idx;
+            }
+        }
     }
     /**
      * @param {(number|string)} [start=0]
@@ -150,10 +172,17 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
      */
     getFromIntervalTimeGen(start = 0, end = Date.now()) {
         return __asyncGenerator(this, arguments, function* getFromIntervalTimeGen_1() {
+            this.cleanUpNaNDates();
             const normalizedStart = SpinalTimeSeriesArchive.normalizeDate(start);
             const normalizedEnd = typeof end === 'number' || typeof end === 'string'
                 ? new Date(end).getTime()
-                : end;
+                : end.getTime();
+            if (isNaN(normalizedStart)) {
+                throw `the value 'start' [${start}] is not a valid date`;
+            }
+            if (isNaN(normalizedEnd)) {
+                throw `the value 'end' [${end}] is not a valid date`;
+            }
             for (let idx = 0; idx < this.lstDate.length; idx += 1) {
                 const element = this.lstDate[idx].get();
                 if (normalizedStart > element)
@@ -164,7 +193,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
                 if (normalizedStart === element) {
                     for (; index < archiveLen; index += 1) {
                         const dateValue = archive.get(index);
-                        if (dateValue.date >= start) {
+                        if (dateValue.date >= normalizedStart) {
                             break;
                         }
                     }
@@ -218,7 +247,11 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getArchiveAtDate(date) {
+        this.cleanUpNaNDates();
         const normalizedDate = SpinalTimeSeriesArchive.normalizeDate(date);
+        if (isNaN(normalizedDate)) {
+            throw `the value [${date}] is not a valid date`;
+        }
         if (this.itemLoadedDictionary.has(normalizedDate)) {
             return this.itemLoadedDictionary.get(normalizedDate);
         }
@@ -243,7 +276,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
         }
     }
     /**
-     * @returns {spinal.Lst<spinal.Val>}
+     * @returns {Lst<Val>}
      * @memberof SpinalTimeSeriesArchive
      */
     getDates() {
@@ -285,6 +318,5 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_type_1.Model {
     }
 }
 exports.SpinalTimeSeriesArchive = SpinalTimeSeriesArchive;
-spinal_core_connectorjs_type_1.spinalCore.register_models(SpinalTimeSeriesArchive);
-exports.default = SpinalTimeSeriesArchive;
+spinal_core_connectorjs_1.spinalCore.register_models(SpinalTimeSeriesArchive);
 //# sourceMappingURL=SpinalTimeSeriesArchive.js.map

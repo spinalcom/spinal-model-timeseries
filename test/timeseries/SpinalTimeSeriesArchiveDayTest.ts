@@ -27,8 +27,8 @@ import {
   SpinalTimeSeriesArchiveDay,
   SpinalDateValue,
   SpinalDateValueArray,
-} from '../../src';
-import { FileSystem } from 'spinal-core-connectorjs_type';
+} from 'spinal-model-timeseries';
+import { FileSystem } from 'spinal-core-connectorjs';
 import * as assert from 'assert';
 import * as tk from 'timekeeper';
 tk.freeze(1546532599592);
@@ -91,7 +91,7 @@ describe('SpinalTimeSeriesArchiveDay', () => {
     });
 
     it('insert for an otherday does return false', () => {
-      const res = instanceTest.insert(42, Date.now() + 100000000000000000);
+      const res = instanceTest.insert(42, Date.now() + 1000000000000000);
       assert.strictEqual(res, false);
       assert.strictEqual(instanceTest.getActualBufferSize(), 32);
     });

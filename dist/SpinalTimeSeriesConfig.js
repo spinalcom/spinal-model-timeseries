@@ -1,3 +1,4 @@
+"use strict";
 /*
  * Copyright 2023 SpinalCom - www.spinalcom.com
  *
@@ -21,19 +22,10 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-
-import { SpinalServiceTimeseries } from './timeseries/SpinalServiceTimeseries';
-
-export default SpinalServiceTimeseries;
-export * from './interfaces/SpinalDateValueArray';
-export * from './interfaces/SpinalDateValue';
-export * from './interfaces/TimeSeriesEndpointCfg';
-export * from './interfaces/TimeSeriesIntervalDate';
-
-export * from './timeseries/SpinalServiceTimeseries';
-export * from './timeseries/SpinalTimeSeriesArchiveDay';
-export * from './timeseries/SpinalTimeSeriesArchive';
-export * from './timeseries/SpinalTimeSeries';
-export * from './SpinalTimeSeriesConfig';
-
-export * from './utils/asyncGenToArray';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SpinalTimeSeriesConfig = void 0;
+exports.SpinalTimeSeriesConfig = {
+    MAX_DAY: 2,
+    INIT_BLOCK_SIZE: 50,
+};
+//# sourceMappingURL=SpinalTimeSeriesConfig.js.map

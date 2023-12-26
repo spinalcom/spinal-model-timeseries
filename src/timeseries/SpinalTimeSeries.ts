@@ -26,22 +26,25 @@ import {
   Model,
   Ptr,
   spinalCore,
-} from 'spinal-core-connectorjs_type';
+  type Val,
+  type Str,
+} from 'spinal-core-connectorjs';
 import { genUID } from '../utils/genUID';
 import { loadPtr } from '../utils/loadPtr';
 import { SpinalDateValue } from '../interfaces/SpinalDateValue';
 import { SpinalTimeSeriesArchive } from './SpinalTimeSeriesArchive';
 import { SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
+import { SpinalTimeSeriesConfig } from '../SpinalTimeSeriesConfig';
 
 /**
  * @class SpinalTimeSeries
- * @property {spinal.Str} id
- * @property {spinal.Val} maxDay
- * @property {spinal.Ptr<SpinalTimeSeriesArchive>} archive
- * @property {spinal.Ptr<SpinalTimeSeriesArchiveDay>} currentArchive
+ * @property {Str} id
+ * @property {Val} maxDay
+ * @property {Ptr<SpinalTimeSeriesArchive>} archive
+ * @property {Ptr<SpinalTimeSeriesArchiveDay>} currentArchive
  * @extends {Model}
  */
-class SpinalTimeSeries extends Model {
+export class SpinalTimeSeries extends Model {
   /**
    * @static
    * @type {string}
@@ -55,9 +58,9 @@ class SpinalTimeSeries extends Model {
    */
   public static nodeTypeName: string = 'TimeSeries';
 
-  public id: spinal.Str;
-  public currentArchive: spinal.Ptr<SpinalTimeSeriesArchiveDay>;
-  public archive: spinal.Ptr<SpinalTimeSeriesArchive>;
+  public id: Str;
+  public currentArchive: Ptr<SpinalTimeSeriesArchiveDay>;
+  public archive: Ptr<SpinalTimeSeriesArchive>;
 
   public archiveProm: Promise<SpinalTimeSeriesArchive>;
   public currentProm: Promise<SpinalTimeSeriesArchiveDay>;
@@ -66,7 +69,7 @@ class SpinalTimeSeries extends Model {
     Promise<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive>
   >;
   /**
-   * @type {spinal.Val} number of days to keep, default 2 days
+   * @type {Val} number of days to keep, default 2 days
    * ```
    * < 0 = keep infinitly
    * 0 = no timeseries
@@ -74,19 +77,22 @@ class SpinalTimeSeries extends Model {
    * ```
    * @memberof SpinalTimeSeries
    */
-  public maxDay: spinal.Val;
+  public maxDay: Val;
 
   /**
    * Creates an instance of SpinalTimeSeries.
-   * @param {number} [initialBlockSize=50]
-   * @param {number} [maxDay=2] number of days to keep, default 2 days
+   * @param {number} [initialBlockSize=SpinalTimeSeriesConfig.INIT_BLOCK_SIZE]
+   * @param {number} [maxDay=SpinalTimeSeriesConfig.MAX_DAY] number of days to keep, default 2 days
    * ```
    * 0 = keep infinitly
    * > 0 = nbr of day to keep
    * ```
    * @memberof SpinalTimeSeries
    */
-  constructor(initialBlockSize: number = 50, maxDay: number = 2) {
+  constructor(
+    initialBlockSize: number = SpinalTimeSeriesConfig.INIT_BLOCK_SIZE,
+    maxDay: number = SpinalTimeSeriesConfig.MAX_DAY
+  ) {
     super();
     this.archiveProm = null;
     this.currentProm = null;
@@ -187,7 +193,6 @@ class SpinalTimeSeries extends Model {
     );
     const archive = await this.getArchive();
     if (currentDay.dateDay.get() !== normalizedDate) {
-      //const archive = await this.getArchive();
       this.currentProm = archive.getTodayArchive();
       currentDay = await this.currentProm;
     }
@@ -304,10 +309,3 @@ class SpinalTimeSeries extends Model {
 }
 
 spinalCore.register_models(SpinalTimeSeries);
-
-export default SpinalTimeSeries;
-export {
-  SpinalTimeSeries,
-  SpinalTimeSeriesArchive,
-  SpinalTimeSeriesArchiveDay,
-};

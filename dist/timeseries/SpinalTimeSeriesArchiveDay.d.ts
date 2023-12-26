@@ -1,29 +1,29 @@
-import { Model } from 'spinal-core-connectorjs_type';
-import { SpinalDateValue } from '../interfaces/SpinalDateValue';
-import { SpinalDateValueArray } from '../interfaces/SpinalDateValueArray';
+import { Model, type Val } from 'spinal-core-connectorjs';
+import type { SpinalDateValue } from '../interfaces/SpinalDateValue';
+import type { SpinalDateValueArray } from '../interfaces/SpinalDateValueArray';
 /**
- * @property {spinal.Lst<spinal.Val>} lstDate
- * @property {spinal.Lst<spinal.Val>} lstValue
- * @property {spinal.Val} length
- * @property {spinal.Val} dateDay
+ * @property {Lst<Val>} lstDate
+ * @property {Lst<Val>} lstValue
+ * @property {Val} length
+ * @property {Val} dateDay
  * @class SpinalTimeSeriesArchiveDay
  * @extends {Model}
  */
 export declare class SpinalTimeSeriesArchiveDay extends Model {
     /**
      * @private
-     * @type {spinal.Lst<spinal.Val>}
+     * @type {Lst<Val>}
      * @memberof SpinalTimeSeriesArchiveDay
      */
     private lstDate;
     /**
      * @private
-     * @type {spinal.Lst<spinal.Val>}
+     * @type {Lst<Val>}
      * @memberof SpinalTimeSeriesArchiveDay
      */
     private lstValue;
-    length: spinal.Val;
-    dateDay: spinal.Val;
+    length: Val;
+    dateDay: Val;
     constructor(initialBlockSize?: number);
     /**
      * @param {number} data
@@ -68,4 +68,3 @@ export declare class SpinalTimeSeriesArchiveDay extends Model {
     private addBufferSizeLength;
     private upgradeFromOldTimeSeries;
 }
-export default SpinalTimeSeriesArchiveDay;

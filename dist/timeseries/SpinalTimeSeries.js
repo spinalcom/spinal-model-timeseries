@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SpinalTimeSeriesArchiveDay = exports.SpinalTimeSeriesArchive = exports.SpinalTimeSeries = void 0;
+exports.SpinalTimeSeries = void 0;
 /*
  * Copyright 2018 SpinalCom - www.spinalcom.com
  *
@@ -33,46 +33,44 @@ exports.SpinalTimeSeriesArchiveDay = exports.SpinalTimeSeriesArchive = exports.S
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
+const spinal_core_connectorjs_1 = require("spinal-core-connectorjs");
 const genUID_1 = require("../utils/genUID");
 const loadPtr_1 = require("../utils/loadPtr");
 const SpinalTimeSeriesArchive_1 = require("./SpinalTimeSeriesArchive");
-Object.defineProperty(exports, "SpinalTimeSeriesArchive", { enumerable: true, get: function () { return SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive; } });
-const SpinalTimeSeriesArchiveDay_1 = require("./SpinalTimeSeriesArchiveDay");
-Object.defineProperty(exports, "SpinalTimeSeriesArchiveDay", { enumerable: true, get: function () { return SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay; } });
+const SpinalTimeSeriesConfig_1 = require("../SpinalTimeSeriesConfig");
 /**
  * @class SpinalTimeSeries
- * @property {spinal.Str} id
- * @property {spinal.Val} maxDay
- * @property {spinal.Ptr<SpinalTimeSeriesArchive>} archive
- * @property {spinal.Ptr<SpinalTimeSeriesArchiveDay>} currentArchive
+ * @property {Str} id
+ * @property {Val} maxDay
+ * @property {Ptr<SpinalTimeSeriesArchive>} archive
+ * @property {Ptr<SpinalTimeSeriesArchiveDay>} currentArchive
  * @extends {Model}
  */
-class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
+class SpinalTimeSeries extends spinal_core_connectorjs_1.Model {
     /**
      * Creates an instance of SpinalTimeSeries.
-     * @param {number} [initialBlockSize=50]
-     * @param {number} [maxDay=2] number of days to keep, default 2 days
+     * @param {number} [initialBlockSize=SpinalTimeSeriesConfig.INIT_BLOCK_SIZE]
+     * @param {number} [maxDay=SpinalTimeSeriesConfig.MAX_DAY] number of days to keep, default 2 days
      * ```
      * 0 = keep infinitly
      * > 0 = nbr of day to keep
      * ```
      * @memberof SpinalTimeSeries
      */
-    constructor(initialBlockSize = 50, maxDay = 2) {
+    constructor(initialBlockSize = SpinalTimeSeriesConfig_1.SpinalTimeSeriesConfig.INIT_BLOCK_SIZE, maxDay = SpinalTimeSeriesConfig_1.SpinalTimeSeriesConfig.MAX_DAY) {
         super();
         this.archiveProm = null;
         this.currentProm = null;
         this.loadPtrDictionary = new Map();
-        if (spinal_core_connectorjs_type_1.FileSystem._sig_server === false)
+        if (spinal_core_connectorjs_1.FileSystem._sig_server === false)
             return;
         const archive = new SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive(initialBlockSize);
         this.archiveProm = Promise.resolve(archive);
         this.add_attr({
             id: (0, genUID_1.genUID)(),
             maxDay,
-            archive: new spinal_core_connectorjs_type_1.Ptr(archive),
-            currentArchive: new spinal_core_connectorjs_type_1.Ptr(0),
+            archive: new spinal_core_connectorjs_1.Ptr(archive),
+            currentArchive: new spinal_core_connectorjs_1.Ptr(0),
             currentData: 0,
         });
     }
@@ -158,7 +156,6 @@ class SpinalTimeSeries extends spinal_core_connectorjs_type_1.Model {
             const normalizedDate = SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive.normalizeDate(Date.now());
             const archive = yield this.getArchive();
             if (currentDay.dateDay.get() !== normalizedDate) {
-                //const archive = await this.getArchive();
                 this.currentProm = archive.getTodayArchive();
                 currentDay = yield this.currentProm;
             }
@@ -275,6 +272,5 @@ SpinalTimeSeries.relationName = 'hasTimeSeries';
  * @memberof SpinalTimeSeries
  */
 SpinalTimeSeries.nodeTypeName = 'TimeSeries';
-spinal_core_connectorjs_type_1.spinalCore.register_models(SpinalTimeSeries);
-exports.default = SpinalTimeSeries;
+spinal_core_connectorjs_1.spinalCore.register_models(SpinalTimeSeries);
 //# sourceMappingURL=SpinalTimeSeries.js.map

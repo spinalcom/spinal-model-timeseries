@@ -24,23 +24,23 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SpinalTimeSeriesArchiveDay = void 0;
-const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
+const spinal_core_connectorjs_1 = require("spinal-core-connectorjs");
 /**
- * @property {spinal.Lst<spinal.Val>} lstDate
- * @property {spinal.Lst<spinal.Val>} lstValue
- * @property {spinal.Val} length
- * @property {spinal.Val} dateDay
+ * @property {Lst<Val>} lstDate
+ * @property {Lst<Val>} lstValue
+ * @property {Val} length
+ * @property {Val} dateDay
  * @class SpinalTimeSeriesArchiveDay
  * @extends {Model}
  */
-class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
+class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_1.Model {
     constructor(initialBlockSize = 50) {
         super();
-        if (spinal_core_connectorjs_type_1.FileSystem._sig_server === false)
+        if (spinal_core_connectorjs_1.FileSystem._sig_server === false)
             return;
         this.add_attr({
-            lstDate: new spinal_core_connectorjs_type_1.Lst(Array(initialBlockSize).fill(0)),
-            lstValue: new spinal_core_connectorjs_type_1.Lst(Array(initialBlockSize).fill(0)),
+            lstDate: new spinal_core_connectorjs_1.Lst(Array(initialBlockSize).fill(0)),
+            lstValue: new spinal_core_connectorjs_1.Lst(Array(initialBlockSize).fill(0)),
             dateDay: new Date().setUTCHours(0, 0, 0, 0),
             length: 0,
         });
@@ -106,7 +106,7 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
     get(index) {
         if (typeof index === 'number')
             return this.at(index);
-        if (this.lstDate instanceof spinal_core_connectorjs_type_1.TypedArray)
+        if (this.lstDate instanceof spinal_core_connectorjs_1.TypedArray)
             return {
                 dateDay: this.dateDay.get(),
                 // @ts-ignore
@@ -135,7 +135,7 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
         if (index >= this.length.get() || index < 0) {
             return undefined;
         }
-        if (this.lstDate instanceof spinal_core_connectorjs_type_1.TypedArray) {
+        if (this.lstDate instanceof spinal_core_connectorjs_1.TypedArray) {
             return {
                 date: this.lstDate.get(index),
                 // @ts-ignore
@@ -166,7 +166,7 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
         }
     }
     upgradeFromOldTimeSeries() {
-        if (this.lstDate instanceof spinal_core_connectorjs_type_1.TypedArray) {
+        if (this.lstDate instanceof spinal_core_connectorjs_1.TypedArray) {
             const tmpDate = this.lstDate;
             const tmpValue = this.lstValue;
             this.mod_attr('lstDate', tmpDate.get());
@@ -175,6 +175,5 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_type_1.Model {
     }
 }
 exports.SpinalTimeSeriesArchiveDay = SpinalTimeSeriesArchiveDay;
-exports.default = SpinalTimeSeriesArchiveDay;
-spinal_core_connectorjs_type_1.spinalCore.register_models(SpinalTimeSeriesArchiveDay);
+spinal_core_connectorjs_1.spinalCore.register_models(SpinalTimeSeriesArchiveDay);
 //# sourceMappingURL=SpinalTimeSeriesArchiveDay.js.map

@@ -24,7 +24,7 @@ exports.loadPtr = void 0;
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
+const spinal_core_connectorjs_1 = require("spinal-core-connectorjs");
 function loadPtr(loadPtrDictionary, ptr) {
     if (typeof ptr.data.value !== 'undefined' &&
         loadPtrDictionary.has(ptr.data.value)) {
@@ -40,16 +40,12 @@ function loadPtr(loadPtrDictionary, ptr) {
     if (typeof ptr.data.value !== 'undefined' && ptr.data.value === 0) {
         return Promise.reject('Load Ptr to 0');
     }
-    if (typeof spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value] !== 'undefined') {
-        const res = Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[ptr.data.value]);
+    if (typeof spinal_core_connectorjs_1.FileSystem._objects[ptr.data.value] !== 'undefined') {
+        const res = Promise.resolve(spinal_core_connectorjs_1.FileSystem._objects[ptr.data.value]);
         loadPtrDictionary.set(ptr.data.value, res);
         return Promise.resolve(res);
     }
-    const res = new Promise((resolve) => {
-        ptr.load((element) => {
-            resolve(element);
-        });
-    });
+    const res = ptr.load();
     loadPtrDictionary.set(ptr.data.value, res);
     return res;
 }

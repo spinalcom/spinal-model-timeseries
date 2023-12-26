@@ -1,16 +1,16 @@
-import { Model } from 'spinal-core-connectorjs_type';
+import { Model, Ptr, type Val, type Str } from 'spinal-core-connectorjs';
 import { SpinalDateValue } from '../interfaces/SpinalDateValue';
 import { SpinalTimeSeriesArchive } from './SpinalTimeSeriesArchive';
 import { SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
 /**
  * @class SpinalTimeSeries
- * @property {spinal.Str} id
- * @property {spinal.Val} maxDay
- * @property {spinal.Ptr<SpinalTimeSeriesArchive>} archive
- * @property {spinal.Ptr<SpinalTimeSeriesArchiveDay>} currentArchive
+ * @property {Str} id
+ * @property {Val} maxDay
+ * @property {Ptr<SpinalTimeSeriesArchive>} archive
+ * @property {Ptr<SpinalTimeSeriesArchiveDay>} currentArchive
  * @extends {Model}
  */
-declare class SpinalTimeSeries extends Model {
+export declare class SpinalTimeSeries extends Model {
     /**
      * @static
      * @type {string}
@@ -23,14 +23,14 @@ declare class SpinalTimeSeries extends Model {
      * @memberof SpinalTimeSeries
      */
     static nodeTypeName: string;
-    id: spinal.Str;
-    currentArchive: spinal.Ptr<SpinalTimeSeriesArchiveDay>;
-    archive: spinal.Ptr<SpinalTimeSeriesArchive>;
+    id: Str;
+    currentArchive: Ptr<SpinalTimeSeriesArchiveDay>;
+    archive: Ptr<SpinalTimeSeriesArchive>;
     archiveProm: Promise<SpinalTimeSeriesArchive>;
     currentProm: Promise<SpinalTimeSeriesArchiveDay>;
     private loadPtrDictionary;
     /**
-     * @type {spinal.Val} number of days to keep, default 2 days
+     * @type {Val} number of days to keep, default 2 days
      * ```
      * < 0 = keep infinitly
      * 0 = no timeseries
@@ -38,11 +38,11 @@ declare class SpinalTimeSeries extends Model {
      * ```
      * @memberof SpinalTimeSeries
      */
-    maxDay: spinal.Val;
+    maxDay: Val;
     /**
      * Creates an instance of SpinalTimeSeries.
-     * @param {number} [initialBlockSize=50]
-     * @param {number} [maxDay=2] number of days to keep, default 2 days
+     * @param {number} [initialBlockSize=SpinalTimeSeriesConfig.INIT_BLOCK_SIZE]
+     * @param {number} [maxDay=SpinalTimeSeriesConfig.MAX_DAY] number of days to keep, default 2 days
      * ```
      * 0 = keep infinitly
      * > 0 = nbr of day to keep
@@ -122,5 +122,3 @@ declare class SpinalTimeSeries extends Model {
      */
     getDataFromLastDays(numberOfDays?: number): Promise<AsyncIterableIterator<SpinalDateValue>>;
 }
-export default SpinalTimeSeries;
-export { SpinalTimeSeries, SpinalTimeSeriesArchive, SpinalTimeSeriesArchiveDay, };

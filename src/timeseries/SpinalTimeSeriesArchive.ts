@@ -21,20 +21,27 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-import { Model, Ptr, spinalCore } from 'spinal-core-connectorjs_type';
+import {
+  Model,
+  Ptr,
+  spinalCore,
+  type Lst,
+  type Val,
+} from 'spinal-core-connectorjs';
 import { loadPtr } from '../utils/loadPtr';
 import { SpinalTimeSeriesArchiveDay } from './SpinalTimeSeriesArchiveDay';
-import { SpinalDateValue } from '../interfaces/SpinalDateValue';
+import { SpinalTimeSeriesConfig } from '../SpinalTimeSeriesConfig';
+import type { SpinalDateValue } from '../interfaces/SpinalDateValue';
 
 /**
  * @class SpinalTimeSeriesArchive
  * @extends {Model}
  */
-class SpinalTimeSeriesArchive extends Model {
+export class SpinalTimeSeriesArchive extends Model {
   // synchronized
-  private lstDate: spinal.Lst<spinal.Val>;
-  private lstItem: spinal.Lst<spinal.Ptr<SpinalTimeSeriesArchiveDay>>;
-  public initialBlockSize: spinal.Val;
+  private lstDate: Lst<Val>;
+  private lstItem: Lst<Ptr<SpinalTimeSeriesArchiveDay>>;
+  public initialBlockSize: Val;
 
   // not synchronized
   private itemLoadedDictionary: Map<
@@ -45,10 +52,12 @@ class SpinalTimeSeriesArchive extends Model {
 
   /**
    *Creates an instance of SpinalTimeSeriesArchive.
-   * @param {number} [initialBlockSize=50]
+   * @param {number} [initialBlockSize=SpinalTimeSeriesConfig.INIT_BLOCK_SIZE]
    * @memberof SpinalTimeSeriesArchive
    */
-  constructor(initialBlockSize: number = 50) {
+  constructor(
+    initialBlockSize: number = SpinalTimeSeriesConfig.INIT_BLOCK_SIZE
+  ) {
     super({
       initialBlockSize,
       lstDate: [],
@@ -74,6 +83,7 @@ class SpinalTimeSeriesArchive extends Model {
    * @memberof SpinalTimeSeriesArchive
    */
   public getTodayArchive(): Promise<SpinalTimeSeriesArchiveDay> {
+    this.cleanUpNaNDates();
     const now = Date.now();
     const date = SpinalTimeSeriesArchive.normalizeDate(now);
     const spinalTimeSeriesArchiveDay = this.itemLoadedDictionary.get(date);
@@ -104,7 +114,11 @@ class SpinalTimeSeriesArchive extends Model {
   public getOrCreateArchiveAtDate(
     atDate: number | string | Date
   ): Promise<SpinalTimeSeriesArchiveDay> {
+    this.cleanUpNaNDates();
     const date = SpinalTimeSeriesArchive.normalizeDate(atDate);
+    if (isNaN(date)) {
+      throw `the value [${atDate}] is not a valid date`;
+    }
     const spinalTimeSeriesArchiveDay = this.itemLoadedDictionary.get(date);
 
     if (spinalTimeSeriesArchiveDay !== undefined) {
@@ -137,6 +151,22 @@ class SpinalTimeSeriesArchive extends Model {
   }
 
   /**
+   * @memberof SpinalTimeSeriesArchive
+   */
+  cleanUpNaNDates() {
+    let idx = 0;
+    while (idx < this.lstDate.length) {
+      const date = this.lstDate[idx];
+      if (date && isNaN(date.get())) {
+        this.lstDate.splice(idx, 1);
+        this.lstItem.splice(idx, 1);
+      } else {
+        ++idx;
+      }
+    }
+  }
+
+  /**
    * @param {(number|string)} [start=0]
    * @param {(number|string)} [end=Date.now()]
    * @returns {AsyncIterableIterator<SpinalDateValue>}
@@ -146,11 +176,18 @@ class SpinalTimeSeriesArchive extends Model {
     start: number | string | Date = 0,
     end: number | string | Date = Date.now()
   ): AsyncIterableIterator<SpinalDateValue> {
+    this.cleanUpNaNDates();
     const normalizedStart = SpinalTimeSeriesArchive.normalizeDate(start);
     const normalizedEnd =
       typeof end === 'number' || typeof end === 'string'
         ? new Date(end).getTime()
-        : end;
+        : end.getTime();
+    if (isNaN(normalizedStart)) {
+      throw `the value 'start' [${start}] is not a valid date`;
+    }
+    if (isNaN(normalizedEnd)) {
+      throw `the value 'end' [${end}] is not a valid date`;
+    }
     for (let idx = 0; idx < this.lstDate.length; idx += 1) {
       const element = this.lstDate[idx].get();
       if (normalizedStart > element) continue;
@@ -160,7 +197,7 @@ class SpinalTimeSeriesArchive extends Model {
       if (normalizedStart === element) {
         for (; index < archiveLen; index += 1) {
           const dateValue = archive.get(index);
-          if (dateValue.date >= start) {
+          if (dateValue.date >= normalizedStart) {
             break;
           }
         }
@@ -200,7 +237,11 @@ class SpinalTimeSeriesArchive extends Model {
   public getArchiveAtDate(
     date: number | string | Date
   ): Promise<SpinalTimeSeriesArchiveDay> {
+    this.cleanUpNaNDates();
     const normalizedDate: number = SpinalTimeSeriesArchive.normalizeDate(date);
+    if (isNaN(normalizedDate)) {
+      throw `the value [${date}] is not a valid date`;
+    }
     if (this.itemLoadedDictionary.has(normalizedDate)) {
       return this.itemLoadedDictionary.get(normalizedDate);
     }
@@ -213,7 +254,7 @@ class SpinalTimeSeriesArchive extends Model {
 
     function getArchive(): Promise<SpinalTimeSeriesArchiveDay> {
       return new Promise((resolve) => {
-        const ptr: spinal.Ptr<SpinalTimeSeriesArchiveDay> = this.lstItem[idx];
+        const ptr: Ptr<SpinalTimeSeriesArchiveDay> = this.lstItem[idx];
         if (typeof ptr.data.model !== 'undefined') {
           resolve(ptr.data.model);
         } else {
@@ -226,10 +267,10 @@ class SpinalTimeSeriesArchive extends Model {
   }
 
   /**
-   * @returns {spinal.Lst<spinal.Val>}
+   * @returns {Lst<Val>}
    * @memberof SpinalTimeSeriesArchive
    */
-  public getDates(): spinal.Lst<spinal.Val> {
+  public getDates(): Lst<Val> {
     return this.lstDate;
   }
 
@@ -270,6 +311,3 @@ class SpinalTimeSeriesArchive extends Model {
 }
 
 spinalCore.register_models(SpinalTimeSeriesArchive);
-
-export default SpinalTimeSeriesArchive;
-export { SpinalTimeSeriesArchive };
