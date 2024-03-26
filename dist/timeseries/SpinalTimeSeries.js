@@ -77,25 +77,27 @@ class SpinalTimeSeries extends spinal_core_connectorjs_1.Model {
     /**
      * @param {(number|string|Date)} [start=0]
      * @param {(number|string|Date)} [end=Date.now()]
+     * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
      * @returns {Promise<AsyncIterableIterator<SpinalDateValue>>}
      * @memberof SpinalTimeSeries
      */
-    getFromIntervalTimeGen(start = 0, end = Date.now()) {
+    getFromIntervalTimeGen(start = 0, end = Date.now(), includeLastBeforeStart = false) {
         return __awaiter(this, void 0, void 0, function* () {
             const archive = yield this.getArchive();
-            return archive.getFromIntervalTimeGen(start, end);
+            return archive.getFromIntervalTimeGen(start, end, includeLastBeforeStart);
         });
     }
     /**
      * @param {(number|string|Date)} [start=0]
      * @param {(number|string|Date)} [end=Date.now()]
+     * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
      * @returns {Promise<SpinalDateValue[]>}
      * @memberof SpinalTimeSeries
      */
-    getFromIntervalTime(start = 0, end = Date.now()) {
+    getFromIntervalTime(start = 0, end = Date.now(), includeLastBeforeStart = false) {
         return __awaiter(this, void 0, void 0, function* () {
             const archive = yield this.getArchive();
-            return archive.getFromIntervalTime(start, end);
+            return archive.getFromIntervalTime(start, end, includeLastBeforeStart);
         });
     }
     /**

@@ -169,35 +169,63 @@ export class SpinalTimeSeriesArchive extends Model {
   /**
    * @param {(number|string)} [start=0]
    * @param {(number|string)} [end=Date.now()]
+   * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
    * @returns {AsyncIterableIterator<SpinalDateValue>}
    * @memberof SpinalTimeSeriesArchive
    */
   public async *getFromIntervalTimeGen(
     start: number | string | Date = 0,
-    end: number | string | Date = Date.now()
+    end: number | string | Date = Date.now(),
+    includeLastBeforeStart: boolean = false
   ): AsyncIterableIterator<SpinalDateValue> {
     this.cleanUpNaNDates();
-    const normalizedStart = SpinalTimeSeriesArchive.normalizeDate(start);
+    const normalizedStart = SpinalTimeSeriesArchive.normalizeDate(start); // Get the date at start of the day
     const normalizedEnd =
       typeof end === 'number' || typeof end === 'string'
         ? new Date(end).getTime()
         : end.getTime();
+
+    const startEpoch = typeof start === 'number' || typeof start === 'string'
+    ? new Date(start).getTime()
+    : start.getTime();
+
     if (isNaN(normalizedStart)) {
       throw `the value 'start' [${start}] is not a valid date`;
     }
     if (isNaN(normalizedEnd)) {
       throw `the value 'end' [${end}] is not a valid date`;
     }
+    let yieldedLastBeforeStart = !includeLastBeforeStart; // If we're not including the last before start, mark it as already "yielded".
+
     for (let idx = 0; idx < this.lstDate.length; idx += 1) {
       const element = this.lstDate[idx].get();
-      if (normalizedStart > element) continue;
-      const archive = await this.getArchiveAtDate(element);
+      if (normalizedStart > element) continue; // Skip until correct day.
+
+      const archive = await this.getArchiveAtDate(element); // Get the archive for the day.
       let index = 0;
       const archiveLen = archive.length.get();
+
+      if (!yieldedLastBeforeStart ) {
+        // Find and yield the last value before start.
+        let lastValueBeforeStart = null;
+        for (let j = 0; j < archiveLen; j += 1) {
+          const tempValue = archive.get(j);
+          if (tempValue.date < startEpoch) {
+            lastValueBeforeStart = tempValue;
+          } else {
+            break;
+          }
+        }
+        if (lastValueBeforeStart !== null) {
+          yield lastValueBeforeStart;
+          yieldedLastBeforeStart = true;
+        }
+      }
+  
       if (normalizedStart === element) {
         for (; index < archiveLen; index += 1) {
           const dateValue = archive.get(index);
-          if (dateValue.date >= normalizedStart) {
+          if (dateValue.date >= startEpoch) {
             break;
           }
         }
@@ -215,15 +243,17 @@ export class SpinalTimeSeriesArchive extends Model {
    * getFromIntervalTimeGen is prefered.
    * @param {number} start
    * @param {(number|string)} [end=Date.now()]
+   * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
    * @returns {Promise<SpinalDateValue[]>}
    * @memberof SpinalTimeSeriesArchive
    */
   public async getFromIntervalTime(
     start: number | string | Date,
-    end: number | string | Date = Date.now()
+    end: number | string | Date = Date.now(),
+    includeLastBeforeStart: boolean = false
   ): Promise<SpinalDateValue[]> {
     const result = [];
-    for await (const data of this.getFromIntervalTimeGen(start, end)) {
+    for await (const data of this.getFromIntervalTimeGen(start, end, includeLastBeforeStart)) {
       result.push(data);
     }
     return result;

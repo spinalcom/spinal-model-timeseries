@@ -231,21 +231,23 @@ class SpinalServiceTimeseries {
      * @param {SpinalTimeSeries} timeseries
      * @param {(string|number|Date)} [start=0]
      * @param {(string|number|Date)} [end=Date.now()]
+     * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
      * @returns {Promise<SpinalDateValue[]>}
      * @memberof SpinalServiceTimeseries
      */
-    getFromIntervalTime(timeseries, start = 0, end = Date.now()) {
-        return timeseries.getFromIntervalTime(start, end);
+    getFromIntervalTime(timeseries, start = 0, end = Date.now(), includeLastBeforeStart = false) {
+        return timeseries.getFromIntervalTime(start, end, includeLastBeforeStart);
     }
     /**
      * @param {SpinalTimeSeries} timeseries
      * @param {(string|number|Date)} [start=0]
      * @param {(string|number|Date)} [end=Date.now()]
+     * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
      * @returns {Promise<AsyncIterableIterator<SpinalDateValue>>}
      * @memberof SpinalServiceTimeseries
      */
-    getFromIntervalTimeGen(timeseries, start = 0, end = Date.now()) {
-        return timeseries.getFromIntervalTimeGen(start, end);
+    getFromIntervalTimeGen(timeseries, start = 0, end = Date.now(), includeLastBeforeStart = false) {
+        return timeseries.getFromIntervalTimeGen(start, end, includeLastBeforeStart);
     }
     /**
      * @param {EndpointId} endpointNodeId
@@ -293,15 +295,16 @@ class SpinalServiceTimeseries {
     /**
      * @param {EndpointId} endpointNodeId
      * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
      * @return {Promise<SpinalDateValue[]>}
      * @memberof SpinalServiceTimeseries
      */
-    getData(endpointNodeId, timeSeriesIntervalDate) {
+    getData(endpointNodeId, timeSeriesIntervalDate, includeLastBeforeStart = false) {
         return __awaiter(this, void 0, void 0, function* () {
             const timeSeries = yield this.getTimeSeries(endpointNodeId);
             if (!timeSeries)
                 throw new Error('endpoint have no timeseries');
-            return (0, asyncGenToArray_1.asyncGenToArray)(yield this.getFromIntervalTimeGen(timeSeries, timeSeriesIntervalDate.start, timeSeriesIntervalDate.end));
+            return (0, asyncGenToArray_1.asyncGenToArray)(yield this.getFromIntervalTimeGen(timeSeries, timeSeriesIntervalDate.start, timeSeriesIntervalDate.end, includeLastBeforeStart));
         });
     }
     /**

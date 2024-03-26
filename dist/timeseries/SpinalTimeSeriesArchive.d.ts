@@ -41,18 +41,20 @@ export declare class SpinalTimeSeriesArchive extends Model {
     /**
      * @param {(number|string)} [start=0]
      * @param {(number|string)} [end=Date.now()]
+     * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
      * @returns {AsyncIterableIterator<SpinalDateValue>}
      * @memberof SpinalTimeSeriesArchive
      */
-    getFromIntervalTimeGen(start?: number | string | Date, end?: number | string | Date): AsyncIterableIterator<SpinalDateValue>;
+    getFromIntervalTimeGen(start?: number | string | Date, end?: number | string | Date, includeLastBeforeStart?: boolean): AsyncIterableIterator<SpinalDateValue>;
     /**
      * getFromIntervalTimeGen is prefered.
      * @param {number} start
      * @param {(number|string)} [end=Date.now()]
+     * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
      * @returns {Promise<SpinalDateValue[]>}
      * @memberof SpinalTimeSeriesArchive
      */
-    getFromIntervalTime(start: number | string | Date, end?: number | string | Date): Promise<SpinalDateValue[]>;
+    getFromIntervalTime(start: number | string | Date, end?: number | string | Date, includeLastBeforeStart?: boolean): Promise<SpinalDateValue[]>;
     /**
      * @param {(number | string | Date)} date
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
