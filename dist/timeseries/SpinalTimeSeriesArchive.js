@@ -187,7 +187,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
             if (isNaN(normalizedEnd)) {
                 throw `the value 'end' [${end}] is not a valid date`;
             }
-            let yieldedLastBeforeStart = !includeLastBeforeStart; // If we're not including the last before start, mark it as already "yielded".
+            //let yieldedLastBeforeStart = !includeLastBeforeStart; // If we're not including the last before start, mark it as already "yielded".
             for (let idx = 0; idx < this.lstDate.length; idx += 1) {
                 const element = this.lstDate[idx].get();
                 if (normalizedStart > element)
@@ -195,29 +195,19 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                 const archive = yield __await(this.getArchiveAtDate(element)); // Get the archive for the day.
                 let index = 0;
                 const archiveLen = archive.length.get();
-                if (!yieldedLastBeforeStart) {
-                    // Find and yield the last value before start.
-                    let lastValueBeforeStart = null;
-                    for (let j = 0; j < archiveLen; j += 1) {
-                        const tempValue = archive.get(j);
-                        if (tempValue.date < startEpoch) {
-                            lastValueBeforeStart = tempValue;
-                        }
-                        else {
-                            break;
-                        }
-                    }
-                    if (lastValueBeforeStart !== null) {
-                        yield yield __await(lastValueBeforeStart);
-                        yieldedLastBeforeStart = true;
-                    }
-                }
                 if (normalizedStart === element) {
+                    let lastData = null;
                     for (; index < archiveLen; index += 1) {
                         const dateValue = archive.get(index);
+                        lastData = dateValue;
                         if (dateValue.date >= startEpoch) {
                             break;
                         }
+                    }
+                    if (includeLastBeforeStart && lastData) {
+                        yield yield __await(lastData);
+                        if (lastData.date === startEpoch)
+                            index += 1;
                     }
                 }
                 for (; index < archiveLen; index += 1) {
