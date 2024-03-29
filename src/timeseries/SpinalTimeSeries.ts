@@ -114,28 +114,32 @@ export class SpinalTimeSeries extends Model {
   /**
    * @param {(number|string|Date)} [start=0]
    * @param {(number|string|Date)} [end=Date.now()]
+   * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
    * @returns {Promise<AsyncIterableIterator<SpinalDateValue>>}
    * @memberof SpinalTimeSeries
    */
   public async getFromIntervalTimeGen(
     start: number | string | Date = 0,
-    end: number | string | Date = Date.now()
+    end: number | string | Date = Date.now(),
+    includeLastBeforeStart: boolean = false,
   ): Promise<AsyncIterableIterator<SpinalDateValue>> {
     const archive = await this.getArchive();
-    return archive.getFromIntervalTimeGen(start, end);
+    return archive.getFromIntervalTimeGen(start, end, includeLastBeforeStart);
   }
   /**
    * @param {(number|string|Date)} [start=0]
    * @param {(number|string|Date)} [end=Date.now()]
+   * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
    * @returns {Promise<SpinalDateValue[]>}
    * @memberof SpinalTimeSeries
    */
   public async getFromIntervalTime(
     start: number | string | Date = 0,
-    end: number | string | Date = Date.now()
+    end: number | string | Date = Date.now(),
+    includeLastBeforeStart: boolean = false,
   ): Promise<SpinalDateValue[]> {
     const archive = await this.getArchive();
-    return archive.getFromIntervalTime(start, end);
+    return archive.getFromIntervalTime(start, end, includeLastBeforeStart);
   }
   /**
    * @returns {Promise<SpinalDateValue>}

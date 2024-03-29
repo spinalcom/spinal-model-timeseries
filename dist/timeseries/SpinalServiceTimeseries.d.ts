@@ -70,18 +70,20 @@ export declare class SpinalServiceTimeseries {
      * @param {SpinalTimeSeries} timeseries
      * @param {(string|number|Date)} [start=0]
      * @param {(string|number|Date)} [end=Date.now()]
+     * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
      * @returns {Promise<SpinalDateValue[]>}
      * @memberof SpinalServiceTimeseries
      */
-    getFromIntervalTime(timeseries: SpinalTimeSeries, start?: string | number | Date, end?: string | number | Date): Promise<SpinalDateValue[]>;
+    getFromIntervalTime(timeseries: SpinalTimeSeries, start?: string | number | Date, end?: string | number | Date, includeLastBeforeStart?: boolean): Promise<SpinalDateValue[]>;
     /**
      * @param {SpinalTimeSeries} timeseries
      * @param {(string|number|Date)} [start=0]
      * @param {(string|number|Date)} [end=Date.now()]
+     * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
      * @returns {Promise<AsyncIterableIterator<SpinalDateValue>>}
      * @memberof SpinalServiceTimeseries
      */
-    getFromIntervalTimeGen(timeseries: SpinalTimeSeries, start?: string | number | Date, end?: string | number | Date): Promise<AsyncIterableIterator<SpinalDateValue>>;
+    getFromIntervalTimeGen(timeseries: SpinalTimeSeries, start?: string | number | Date, end?: string | number | Date, includeLastBeforeStart?: boolean): Promise<AsyncIterableIterator<SpinalDateValue>>;
     /**
      * @param {EndpointId} endpointNodeId
      * @return {Promise<SpinalTimeSeries>}
@@ -103,10 +105,11 @@ export declare class SpinalServiceTimeseries {
     /**
      * @param {EndpointId} endpointNodeId
      * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+     * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
      * @return {Promise<SpinalDateValue[]>}
      * @memberof SpinalServiceTimeseries
      */
-    getData(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDate): Promise<SpinalDateValue[]>;
+    getData(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDate, includeLastBeforeStart?: boolean): Promise<SpinalDateValue[]>;
     /**
      * @param {EndpointId} endpointNodeId
      * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate

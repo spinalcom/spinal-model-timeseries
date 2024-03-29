@@ -51,7 +51,7 @@ for (let index = 0; index < days.length; index += 1) {
   testData.push(
     new SpinalDateValueArray(
       new Date(day).setHours(0, 0, 0, 0),
-      Array.from([day, day + 1, day + 2, day + 3, day + 4]),
+      Array.from([day, day + 2, day + 3, day + 4, day + 5]),
       Array.from([0, 1, 2, 3, 4])
     )
   );

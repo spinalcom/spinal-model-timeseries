@@ -279,30 +279,34 @@ export class SpinalServiceTimeseries {
    * @param {SpinalTimeSeries} timeseries
    * @param {(string|number|Date)} [start=0]
    * @param {(string|number|Date)} [end=Date.now()]
+   * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
    * @returns {Promise<SpinalDateValue[]>}
    * @memberof SpinalServiceTimeseries
    */
   public getFromIntervalTime(
     timeseries: SpinalTimeSeries,
     start: string | number | Date = 0,
-    end: string | number | Date = Date.now()
+    end: string | number | Date = Date.now(),
+    includeLastBeforeStart: boolean = false
   ): Promise<SpinalDateValue[]> {
-    return timeseries.getFromIntervalTime(start, end);
+    return timeseries.getFromIntervalTime(start, end, includeLastBeforeStart);
   }
 
   /**
    * @param {SpinalTimeSeries} timeseries
    * @param {(string|number|Date)} [start=0]
    * @param {(string|number|Date)} [end=Date.now()]
+   * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
    * @returns {Promise<AsyncIterableIterator<SpinalDateValue>>}
    * @memberof SpinalServiceTimeseries
    */
   public getFromIntervalTimeGen(
     timeseries: SpinalTimeSeries,
     start: string | number | Date = 0,
-    end: string | number | Date = Date.now()
+    end: string | number | Date = Date.now(),
+    includeLastBeforeStart: boolean = false,
   ): Promise<AsyncIterableIterator<SpinalDateValue>> {
-    return timeseries.getFromIntervalTimeGen(start, end);
+    return timeseries.getFromIntervalTimeGen(start, end, includeLastBeforeStart);
   }
 
   /**
@@ -354,12 +358,14 @@ export class SpinalServiceTimeseries {
   /**
    * @param {EndpointId} endpointNodeId
    * @param {TimeSeriesIntervalDate} timeSeriesIntervalDate
+   * @param {boolean} [includeLastBeforeStart=false] - If true, include the last value before start.
    * @return {Promise<SpinalDateValue[]>}
    * @memberof SpinalServiceTimeseries
    */
   public async getData(
     endpointNodeId: EndpointId,
-    timeSeriesIntervalDate: TimeSeriesIntervalDate
+    timeSeriesIntervalDate: TimeSeriesIntervalDate,
+    includeLastBeforeStart: boolean = false
   ): Promise<SpinalDateValue[]> {
     const timeSeries = await this.getTimeSeries(endpointNodeId);
     if (!timeSeries) throw new Error('endpoint have no timeseries');
@@ -367,7 +373,8 @@ export class SpinalServiceTimeseries {
       await this.getFromIntervalTimeGen(
         timeSeries,
         timeSeriesIntervalDate.start,
-        timeSeriesIntervalDate.end
+        timeSeriesIntervalDate.end,
+        includeLastBeforeStart
       )
     );
   }

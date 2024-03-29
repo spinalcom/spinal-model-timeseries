@@ -27,7 +27,7 @@ tk.freeze(1546532599592);
 
 import { testData, NBR_DAYS } from './testData';
 import * as assert from 'assert';
-import { SpinalTimeSeries, SpinalDateValue } from 'spinal-model-timeseries';
+import { SpinalTimeSeries, SpinalDateValue } from '../../src';
 
 describe('SpinalTimeSeries', () => {
   let instanceTest: SpinalTimeSeries;
@@ -55,6 +55,7 @@ describe('SpinalTimeSeries', () => {
         }
       }
     });
+
     it('test nbr days pushed', async () => {
       const archive = await instanceTest.getArchive();
       assert.strictEqual(archive.getDates().get().length, 2);
@@ -70,7 +71,6 @@ describe('SpinalTimeSeries', () => {
           dateStart,
           dateEnd
         );
-
         assert.strictEqual(datas.length, element.date.length, 'meh');
         assert.strictEqual(datas.length, element.value.length);
         assert.deepStrictEqual(
@@ -79,14 +79,45 @@ describe('SpinalTimeSeries', () => {
         );
       }
     });
+
+    it('test if get timeseries from interval works', async() => {
+      const sample = testData[0];
+      const datas = await instanceTest.getFromIntervalTime(
+        sample.date[0],
+        sample.date[sample.date.length -1]
+      );
+      const datas2 = await instanceTest.getFromIntervalTime(
+        sample.date[1],
+        sample.date[sample.date.length -1]
+      );
+
+      assert.strictEqual(datas.length, sample.date.length);
+      assert.strictEqual(datas2.length, sample.date.length-1);
+    });
+    it('test getFromIntervalTime with includeLastBeforeStart', async () => {
+      const sample = testData[0];
+      const datas3 = await instanceTest.getFromIntervalTime(
+        sample.date[2],
+        sample.date[sample.date.length -1],
+        true
+      );
+      const datas4 = await instanceTest.getFromIntervalTime(
+        sample.date[1]-1,
+        sample.date[sample.date.length -1],
+        true
+      );
+      assert.strictEqual(datas3.length, sample.date.length-2);
+      assert.strictEqual(datas4.length, sample.date.length);
+    });
     it('test get last 24h', async () => {
+      // At this point current Date is 1546446199596
       const datas: AsyncIterableIterator<SpinalDateValue> =
         await instanceTest.getDataFromLast24Hours();
       let size = 0;
       for await (const data of datas) {
         size += 1;
       }
-      assert.strictEqual(size, 10);
+      assert.strictEqual(size, 6); // 5 values from today + last value from yesterday
     });
   });
   describe('test set maxday = 0', () => {
@@ -100,7 +131,7 @@ describe('SpinalTimeSeries', () => {
       for await (const data of datas) {
         size += 1;
       }
-      assert.strictEqual(size, 10);
+      assert.strictEqual(size, 6);
     });
     it('push a data', async () => {
       tk.travel(Date.now() + 50);
