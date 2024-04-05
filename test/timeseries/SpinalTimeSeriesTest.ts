@@ -90,9 +90,13 @@ describe('SpinalTimeSeries', () => {
         sample.date[1],
         sample.date[sample.date.length -1]
       );
-
+      const datas3 = await instanceTest.getFromIntervalTime(
+        sample.date[1],
+        sample.date[sample.date.length -2]
+      );
       assert.strictEqual(datas.length, sample.date.length);
       assert.strictEqual(datas2.length, sample.date.length-1);
+      assert.strictEqual(datas3.length, sample.date.length-2);
     });
     it('test getFromIntervalTime with includeLastBeforeStart', async () => {
       const sample = testData[0];
@@ -105,10 +109,25 @@ describe('SpinalTimeSeries', () => {
         sample.date[1]-1,
         sample.date[sample.date.length -1],
         true
-      );
+        );
       assert.strictEqual(datas3.length, sample.date.length-2);
       assert.strictEqual(datas4.length, sample.date.length);
+      assert.strictEqual(datas4[0].value, sample.value[0]);
+      assert.strictEqual(datas4[1].value, sample.value[1]);
     });
+    it('test getFromIntervalTime edge case with includeLastBeforeStart first data of the day', async () => {
+      const sample = testData[0];
+      const datas = await instanceTest.getFromIntervalTime(
+        sample.date[0]-1,
+        sample.date[sample.date.length -1],
+        true
+      );
+        console.log("SAMPLE :", sample);
+        console.log("DATAS :", datas);
+      assert.strictEqual(datas.length, sample.date.length+1);
+    });
+
+
     it('test get last 24h', async () => {
       // At this point current Date is 1546446199596
       const datas: AsyncIterableIterator<SpinalDateValue> =
