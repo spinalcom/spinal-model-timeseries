@@ -125,6 +125,16 @@ describe('SpinalTimeSeries', () => {
       assert.strictEqual(datas.length, sample.date.length+1);
     });
 
+    it('test includeLastBeforeStart with an interval empty of timeseries', async () => {
+      const sample = testData[0];
+      const datas = await instanceTest.getFromIntervalTime(
+        sample.date[sample.date.length -1]+1,
+        sample.date[sample.date.length -1]+10,
+        true
+      );
+      assert.strictEqual(datas.length, 1);
+    });
+
 
     it('test get last 24h', async () => {
       // At this point current Date is 1546446199596

@@ -195,44 +195,42 @@ export class SpinalTimeSeriesArchive extends Model {
     if (isNaN(normalizedEnd)) {
       throw `the value 'end' [${end}] is not a valid date`;
     }
-    //let yieldedLastBeforeStart = !includeLastBeforeStart; // If we're not including the last before start, mark it as already "yielded".
-
     for (let idx = 0; idx < this.lstDate.length; idx += 1) {
       const element = this.lstDate[idx].get();
       if (normalizedStart > element) continue; // Skip until correct day.
 
       const archive = await this.getArchiveAtDate(element); // Get the archive for the day.
       let index = 0;
+
+
       const archiveLen = archive.length.get();
       if (normalizedStart === element) {
         let lastData = null;
         for (; index < archiveLen; index += 1) {
           const dateValue = archive.get(index);
-          if(dateValue.date == startEpoch) {
-            break;
+          if(dateValue.date > startEpoch) {
+            break
           }
-          if (dateValue.date > startEpoch) { 
-            if(includeLastBeforeStart && lastData) {
-              yield lastData; // yield the last value before start.
-            }
+          if(dateValue.date == startEpoch) {
+            includeLastBeforeStart = false;
             break;
           }
           lastData = dateValue; // retain last value before start condition is met.
         }
 
         if(includeLastBeforeStart) {
-          if(!lastData) { // If there is no data after loop, we need to find the last data from the previous day(s).
+          if(!lastData) {
             let backtrack = idx-1;
-            while(!lastData && backtrack >= 0) {   
+            while(!lastData && backtrack >= 0) {      
               const lastArchive = await this.getArchiveAtDate(this.lstDate[backtrack].get());
               if(lastArchive.length.get() > 0) {
                 lastData = lastArchive.get(lastArchive.length.get()-1);
               }
               backtrack--;
             }
-            if(lastData) {
-              yield lastData; 
-            }
+          }
+          if(lastData) {
+              yield lastData; // yield the last value before start.
           }
         }
       }

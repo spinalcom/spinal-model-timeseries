@@ -187,7 +187,6 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
             if (isNaN(normalizedEnd)) {
                 throw `the value 'end' [${end}] is not a valid date`;
             }
-            //let yieldedLastBeforeStart = !includeLastBeforeStart; // If we're not including the last before start, mark it as already "yielded".
             for (let idx = 0; idx < this.lstDate.length; idx += 1) {
                 const element = this.lstDate[idx].get();
                 if (normalizedStart > element)
@@ -199,19 +198,17 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                     let lastData = null;
                     for (; index < archiveLen; index += 1) {
                         const dateValue = archive.get(index);
-                        if (dateValue.date == startEpoch) {
+                        if (dateValue.date > startEpoch) {
                             break;
                         }
-                        if (dateValue.date > startEpoch) {
-                            if (includeLastBeforeStart && lastData) {
-                                yield yield __await(lastData); // yield the last value before start.
-                            }
+                        if (dateValue.date == startEpoch) {
+                            includeLastBeforeStart = false;
                             break;
                         }
                         lastData = dateValue; // retain last value before start condition is met.
                     }
                     if (includeLastBeforeStart) {
-                        if (!lastData) { // If there is no data after loop, we need to find the last data from the previous day(s).
+                        if (!lastData) {
                             let backtrack = idx - 1;
                             while (!lastData && backtrack >= 0) {
                                 const lastArchive = yield __await(this.getArchiveAtDate(this.lstDate[backtrack].get()));
@@ -220,9 +217,9 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                                 }
                                 backtrack--;
                             }
-                            if (lastData) {
-                                yield yield __await(lastData);
-                            }
+                        }
+                        if (lastData) {
+                            yield yield __await(lastData); // yield the last value before start.
                         }
                     }
                 }
