@@ -122,8 +122,6 @@ describe('SpinalTimeSeries', () => {
         sample.date[sample.date.length -1],
         true
       );
-        console.log("SAMPLE :", sample);
-        console.log("DATAS :", datas);
       assert.strictEqual(datas.length, sample.date.length+1);
     });
 

@@ -199,13 +199,19 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                     let lastData = null;
                     for (; index < archiveLen; index += 1) {
                         const dateValue = archive.get(index);
-                        if (dateValue.date >= startEpoch) { // skip until start - index is at the first value to yield.
+                        if (dateValue.date == startEpoch) {
+                            break;
+                        }
+                        if (dateValue.date > startEpoch) {
+                            if (includeLastBeforeStart && lastData) {
+                                yield yield __await(lastData); // yield the last value before start.
+                            }
                             break;
                         }
                         lastData = dateValue; // retain last value before start condition is met.
                     }
                     if (includeLastBeforeStart) {
-                        if (!lastData) {
+                        if (!lastData) { // If there is no data after loop, we need to find the last data from the previous day(s).
                             let backtrack = idx - 1;
                             while (!lastData && backtrack >= 0) {
                                 const lastArchive = yield __await(this.getArchiveAtDate(this.lstDate[backtrack].get()));
@@ -214,10 +220,9 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                                 }
                                 backtrack--;
                             }
-                        }
-                        if (lastData) {
-                            if (archive.get(index).date > startEpoch)
-                                yield yield __await(lastData); // yield the last value before start.
+                            if (lastData) {
+                                yield yield __await(lastData);
+                            }
                         }
                     }
                 }
