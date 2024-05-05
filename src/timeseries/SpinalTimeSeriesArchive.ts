@@ -231,6 +231,7 @@ export class SpinalTimeSeriesArchive extends Model {
           }
           if(lastData) {
               yield lastData; // yield the last value before start.
+              includeLastBeforeStart = false;
           }
         }
       }
@@ -241,6 +242,21 @@ export class SpinalTimeSeriesArchive extends Model {
         yield dateValue;
       }
     }
+    
+    if(includeLastBeforeStart){
+      let lastData = null;
+      let idx = this.lstDate.length - 1;
+      while (!lastData && idx >= 0) {
+          const lastArchive =  await (this.getArchiveAtDate(this.lstDate[idx].get()));
+          if (lastArchive.length.get() > 0) {
+              lastData = lastArchive.get(lastArchive.length.get() - 1);
+          }
+          idx--;
+      }
+      if (lastData) {
+          yield (lastData); // yield the last value before start.
+      }
+  }
   }
 
   /**

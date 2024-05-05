@@ -220,6 +220,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                         }
                         if (lastData) {
                             yield yield __await(lastData); // yield the last value before start.
+                            includeLastBeforeStart = false;
                         }
                     }
                 }
