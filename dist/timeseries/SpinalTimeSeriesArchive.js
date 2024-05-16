@@ -231,6 +231,20 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                     yield yield __await(dateValue);
                 }
             }
+            if (includeLastBeforeStart) {
+                let lastData = null;
+                let idx = this.lstDate.length - 1;
+                while (!lastData && idx >= 0) {
+                    const lastArchive = yield __await((this.getArchiveAtDate(this.lstDate[idx].get())));
+                    if (lastArchive.length.get() > 0) {
+                        lastData = lastArchive.get(lastArchive.length.get() - 1);
+                    }
+                    idx--;
+                }
+                if (lastData) {
+                    yield yield __await((lastData)); // yield the last value before start.
+                }
+            }
         });
     }
     /**
