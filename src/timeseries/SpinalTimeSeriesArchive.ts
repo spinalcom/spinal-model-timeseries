@@ -238,15 +238,15 @@ export class SpinalTimeSeriesArchive extends Model {
 
       for (; index < archiveLen; index += 1) {
         const dateValue = archive.get(index);
-        if (dateValue.date > normalizedEnd) return;
+        if (dateValue.date > normalizedEnd) break;
         yield dateValue;
       }
     }
     
     if(includeLastBeforeStart){
       let lastData = null;
-      let idx = this.lstDate.length - 1;
-      while (!lastData && idx >= 0) {
+      let idx = this.lstDate.length - 2; // start from the second last day.
+      while (!lastData && idx >= 0) { // while we didn't find a value or we reach the first day.
           const lastArchive =  await (this.getArchiveAtDate(this.lstDate[idx].get()));
           if (lastArchive.length.get() > 0) {
               lastData = lastArchive.get(lastArchive.length.get() - 1);
@@ -254,7 +254,7 @@ export class SpinalTimeSeriesArchive extends Model {
           idx--;
       }
       if (lastData) {
-          yield (lastData); // yield the last value before start.
+          yield (lastData); // yield the found value.
       }
   }
   }

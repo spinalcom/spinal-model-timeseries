@@ -227,14 +227,14 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                 for (; index < archiveLen; index += 1) {
                     const dateValue = archive.get(index);
                     if (dateValue.date > normalizedEnd)
-                        return yield __await(void 0);
+                        break;
                     yield yield __await(dateValue);
                 }
             }
             if (includeLastBeforeStart) {
                 let lastData = null;
-                let idx = this.lstDate.length - 1;
-                while (!lastData && idx >= 0) {
+                let idx = this.lstDate.length - 2; // start from the second last day.
+                while (!lastData && idx >= 0) { // while we didn't find a value or we reach the first day.
                     const lastArchive = yield __await((this.getArchiveAtDate(this.lstDate[idx].get())));
                     if (lastArchive.length.get() > 0) {
                         lastData = lastArchive.get(lastArchive.length.get() - 1);
@@ -242,7 +242,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                     idx--;
                 }
                 if (lastData) {
-                    yield yield __await((lastData)); // yield the last value before start.
+                    yield yield __await((lastData)); // yield the found value.
                 }
             }
         });
