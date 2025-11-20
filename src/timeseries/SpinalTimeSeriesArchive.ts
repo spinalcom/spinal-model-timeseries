@@ -201,7 +201,7 @@ export class SpinalTimeSeriesArchive extends Model {
 
       const archive = await this.getArchiveAtDate(element); // Get the archive for the day.
       let index = 0;
-      if (!archive.length?.get()) {
+      if (!archive.length?.get()) { // Fix added for weird case where archive.length has been corrupted.
       const incorrectlyNamedAttr = archive._attribute_names.find((attrName) => {
         return !['lstDate', 'lstValue' , 'length'].includes(attrName)
       })
