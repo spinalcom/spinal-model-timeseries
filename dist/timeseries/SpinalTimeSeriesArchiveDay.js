@@ -166,11 +166,23 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_1.Model {
         }
     }
     upgradeFromOldTimeSeries() {
+        var _a;
         if (this.lstDate instanceof spinal_core_connectorjs_1.TypedArray) {
             const tmpDate = this.lstDate;
             const tmpValue = this.lstValue;
             this.mod_attr('lstDate', tmpDate.get());
             this.mod_attr('lstValue', tmpValue.get());
+        }
+        if (!((_a = this.length) === null || _a === void 0 ? void 0 : _a.get())) {
+            // capture weird case where length is missing
+            const incorrectlyNamedAttr = this._attribute_names.find((attrName) => {
+                return !['lstDate', 'lstValue', 'length'].includes(attrName);
+            });
+            if (incorrectlyNamedAttr) {
+                const lengthValue = this[incorrectlyNamedAttr].get();
+                this.add_attr('length', lengthValue);
+                this.rem_attr(incorrectlyNamedAttr);
+            }
         }
     }
 }

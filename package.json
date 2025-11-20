@@ -21,14 +21,10 @@
     "url": "https://github.com/spinalcom/spinal-model-timeseries/issues"
   },
   "homepage": "https://github.com/spinalcom/spinal-model-timeseries#readme",
-  "dependencies": {
-    "spinal-env-viewer-graph-service": "git+https://github.com/spinalcom/Spinal-Graph-Service.git",
-    "spinal-env-viewer-plugin-documentation-service": "git+https://github.com/spinalcom/spinal-env-viewer-plugin-documentation-service.git",
-    "spinal-core-connectorjs": "git+https://github.com/spinalcom/spinal-core-connectorjs.git"
-  },
   "devDependencies": {
     "@types/mocha": "^10.0.0",
     "@types/node": "^18.11.9",
+    "lodash": "^4.17.21",
     "mocha": "^10.1.0",
     "nodemon": "^2.0.20",
     "nyc": "^15.1.0",
@@ -46,5 +42,10 @@
     "exclude": [
       "**/*.d.ts"
     ]
+  },
+  "spinalDependencies": {
+    "spinal-env-viewer-graph-service": "Spinal-Graph-Service",
+    "spinal-env-viewer-plugin-documentation-service": "spinal-env-viewer-plugin-documentation-service",
+    "spinal-core-connectorjs": "spinal-core-connectorjs"
   }
 }

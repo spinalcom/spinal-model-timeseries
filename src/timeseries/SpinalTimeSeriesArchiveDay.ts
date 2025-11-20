@@ -212,6 +212,21 @@ export class SpinalTimeSeriesArchiveDay extends Model {
       this.mod_attr('lstDate', tmpDate.get());
       this.mod_attr('lstValue', tmpValue.get());
     }
+    if (!this.length?.get()) {
+      // capture weird case where length is missing
+      const incorrectlyNamedAttr = this._attribute_names.find((attrName) => {
+        return !['lstDate', 'lstValue' , 'length'].includes(attrName)
+      })
+
+      if( incorrectlyNamedAttr ) {
+        const lengthValue = this[incorrectlyNamedAttr].get();
+        this.add_attr('length', lengthValue);
+        this.rem_attr(incorrectlyNamedAttr);
+      }
+
+      
+      
+    }
   }
 }
 
