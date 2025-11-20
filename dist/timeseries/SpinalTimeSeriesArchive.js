@@ -202,8 +202,8 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                     });
                     if (incorrectlyNamedAttr) {
                         const lengthValue = this[incorrectlyNamedAttr].get();
-                        this.add_attr('length', lengthValue);
-                        this.rem_attr(incorrectlyNamedAttr);
+                        archive.add_attr('length', lengthValue);
+                        archive.rem_attr(incorrectlyNamedAttr);
                     }
                 }
                 const archiveLen = archive.length.get();
