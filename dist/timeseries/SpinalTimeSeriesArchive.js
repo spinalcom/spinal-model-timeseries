@@ -197,11 +197,11 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                 // !! here check length 
                 if (!((_a = archive.length) === null || _a === void 0 ? void 0 : _a.get())) {
                     // capture weird case where length is missing
-                    const incorrectlyNamedAttr = this._attribute_names.find((attrName) => {
+                    const incorrectlyNamedAttr = archive._attribute_names.find((attrName) => {
                         return !['lstDate', 'lstValue', 'length'].includes(attrName);
                     });
                     if (incorrectlyNamedAttr) {
-                        const lengthValue = this[incorrectlyNamedAttr].get();
+                        const lengthValue = archive[incorrectlyNamedAttr].get();
                         archive.add_attr('length', lengthValue);
                         archive.rem_attr(incorrectlyNamedAttr);
                     }

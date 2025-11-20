@@ -205,12 +205,12 @@ export class SpinalTimeSeriesArchive extends Model {
       // !! here check length 
       if (!archive.length?.get()) {
       // capture weird case where length is missing
-      const incorrectlyNamedAttr = this._attribute_names.find((attrName) => {
+      const incorrectlyNamedAttr = archive._attribute_names.find((attrName) => {
         return !['lstDate', 'lstValue' , 'length'].includes(attrName)
       })
 
       if( incorrectlyNamedAttr ) {
-        const lengthValue = this[incorrectlyNamedAttr].get();
+        const lengthValue = archive[incorrectlyNamedAttr].get();
         archive.add_attr('length', lengthValue);
         archive.rem_attr(incorrectlyNamedAttr);
       }
