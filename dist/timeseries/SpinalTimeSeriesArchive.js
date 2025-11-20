@@ -194,9 +194,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                     continue; // Skip until correct day.
                 const archive = yield __await(this.getArchiveAtDate(element)); // Get the archive for the day.
                 let index = 0;
-                // !! here check length 
                 if (!((_a = archive.length) === null || _a === void 0 ? void 0 : _a.get())) {
-                    // capture weird case where length is missing
                     const incorrectlyNamedAttr = archive._attribute_names.find((attrName) => {
                         return !['lstDate', 'lstValue', 'length'].includes(attrName);
                     });
