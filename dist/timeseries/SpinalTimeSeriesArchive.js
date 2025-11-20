@@ -172,6 +172,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getFromIntervalTimeGen(start = 0, end = Date.now(), includeLastBeforeStart = false) {
+        var _a;
         return __asyncGenerator(this, arguments, function* getFromIntervalTimeGen_1() {
             this.cleanUpNaNDates();
             const normalizedStart = SpinalTimeSeriesArchive.normalizeDate(start); // Get the date at start of the day
@@ -193,6 +194,18 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                     continue; // Skip until correct day.
                 const archive = yield __await(this.getArchiveAtDate(element)); // Get the archive for the day.
                 let index = 0;
+                // !! here check length 
+                if (!((_a = archive.length) === null || _a === void 0 ? void 0 : _a.get())) {
+                    // capture weird case where length is missing
+                    const incorrectlyNamedAttr = this._attribute_names.find((attrName) => {
+                        return !['lstDate', 'lstValue', 'length'].includes(attrName);
+                    });
+                    if (incorrectlyNamedAttr) {
+                        const lengthValue = this[incorrectlyNamedAttr].get();
+                        this.add_attr('length', lengthValue);
+                        this.rem_attr(incorrectlyNamedAttr);
+                    }
+                }
                 const archiveLen = archive.length.get();
                 if (normalizedStart === element) {
                     let lastData = null;

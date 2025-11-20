@@ -223,9 +223,6 @@ export class SpinalTimeSeriesArchiveDay extends Model {
         this.add_attr('length', lengthValue);
         this.rem_attr(incorrectlyNamedAttr);
       }
-
-      
-      
     }
   }
 }
