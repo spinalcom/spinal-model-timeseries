@@ -203,7 +203,7 @@ export class SpinalTimeSeriesArchive extends Model {
       let index = 0;
       if (!archive.length?.get()) { // Fix added for weird case where archive.length has been corrupted.
       const incorrectlyNamedAttr = archive._attribute_names.find((attrName) => {
-        return !['lstDate', 'lstValue' , 'length'].includes(attrName)
+        return !['lstDate', 'lstValue' , 'length','dateDay'].includes(attrName)
       })
 
       if( incorrectlyNamedAttr ) {

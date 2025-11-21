@@ -215,7 +215,7 @@ export class SpinalTimeSeriesArchiveDay extends Model {
     if (!this.length?.get()) {
       // capture weird case where length is missing
       const incorrectlyNamedAttr = this._attribute_names.find((attrName) => {
-        return !['lstDate', 'lstValue' , 'length'].includes(attrName)
+        return !['lstDate', 'lstValue' , 'length','dateDay'].includes(attrName)
       })
 
       if( incorrectlyNamedAttr ) {

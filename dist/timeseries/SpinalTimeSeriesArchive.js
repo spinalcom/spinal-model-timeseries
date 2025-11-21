@@ -196,7 +196,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                 let index = 0;
                 if (!((_a = archive.length) === null || _a === void 0 ? void 0 : _a.get())) { // Fix added for weird case where archive.length has been corrupted.
                     const incorrectlyNamedAttr = archive._attribute_names.find((attrName) => {
-                        return !['lstDate', 'lstValue', 'length'].includes(attrName);
+                        return !['lstDate', 'lstValue', 'length', 'dateDay'].includes(attrName);
                     });
                     if (incorrectlyNamedAttr) {
                         const lengthValue = archive[incorrectlyNamedAttr].get();
