@@ -246,7 +246,7 @@ export class SpinalTimeSeriesArchive extends Model {
 
       for (; index < archiveLen; index += 1) {
         const dateValue = archive.get(index);
-        if (dateValue.date > normalizedEnd) return;
+        if (dateValue.date > normalizedEnd || dateValue.date < normalizedStart) return;
         yield dateValue;
       }
     }

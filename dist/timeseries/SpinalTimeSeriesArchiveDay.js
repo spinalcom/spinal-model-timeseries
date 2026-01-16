@@ -51,6 +51,7 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_1.Model {
      */
     push(data) {
         this.upgradeFromOldTimeSeries();
+        this.removeTrailingEmptyTimeseries();
         if (this.lstDate.length <= this.length.get())
             this.addBufferSizeLength();
         this.setLstVal(this.length.get(), Date.now(), data);
@@ -64,24 +65,24 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_1.Model {
      */
     insert(data, date) {
         this.upgradeFromOldTimeSeries();
-        const targetDate = new Date(date).getTime();
-        const maxDate = new Date(this.dateDay.get()).setUTCHours(23, 59, 59, 999);
-        if (!(this.dateDay.get() <= targetDate && targetDate <= maxDate))
+        const targetDate = new Date(date).getTime(); //the date to insert to
+        const maxDate = new Date(this.dateDay.get()).setUTCHours(23, 59, 59, 999); // max date allowed to insert in this day
+        if (!(this.dateDay.get() <= targetDate && targetDate <= maxDate)) // if date is out of range we refuse to insert
             return false;
+        this.removeTrailingEmptyTimeseries(); // clean trailing empty timeseries before insert
         if (this.lstDate.length <= this.length.get())
-            this.addBufferSizeLength();
+            this.addBufferSizeLength(); // resize if needed
         let index = 0;
-        for (; index < this.length.get(); index += 1) {
+        for (; index < this.length.get(); index += 1) { // we try to find a timeseries with the same date
             const element = this.lstDate[index].get();
-            if (element === targetDate) {
-                // check exist
+            if (element === targetDate) { // we already have this date, we update the value
                 this.lstValue[index].set(data);
                 return true;
             }
             if (element > targetDate)
-                break;
+                break; // we stop looking when we passed the target date
         }
-        if (index === this.length.get()) {
+        if (index === this.length.get()) { //  the new date is the biggest, we add it to the end
             this.setLstVal(this.length.get(), targetDate, data);
             this.length.set(this.length.get() + 1);
         }
@@ -163,6 +164,14 @@ class SpinalTimeSeriesArchiveDay extends spinal_core_connectorjs_1.Model {
         for (let idx = this.length.get(); idx < this.length.get() * 2; idx++) {
             this.lstDate.push(0);
             this.lstValue.push(0);
+        }
+    }
+    isEmptyTimeseries(index) {
+        return this.lstDate[index].get() === 0 && this.lstValue[index].get() === 0;
+    }
+    removeTrailingEmptyTimeseries() {
+        while (this.length.get() > 0 && this.isEmptyTimeseries(this.length.get() - 1)) {
+            this.length.set(this.length.get() - 1);
         }
     }
     upgradeFromOldTimeSeries() {

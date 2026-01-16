@@ -66,5 +66,7 @@ export declare class SpinalTimeSeriesArchiveDay extends Model {
      * @memberof SpinalTimeSeriesArchiveDay
      */
     private addBufferSizeLength;
+    private isEmptyTimeseries;
+    private removeTrailingEmptyTimeseries;
     private upgradeFromOldTimeSeries;
 }
