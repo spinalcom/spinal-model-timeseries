@@ -236,6 +236,8 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                 }
                 for (; index < archiveLen; index += 1) {
                     const dateValue = archive.get(index);
+                    if (dateValue.date === 0)
+                        continue; // skip empty timeseries
                     if (dateValue.date > normalizedEnd || dateValue.date < normalizedStart)
                         return yield __await(void 0);
                     yield yield __await(dateValue);
