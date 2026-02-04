@@ -47,6 +47,12 @@ export declare class SpinalTimeSeriesArchive extends Model {
      */
     getFromIntervalTimeGen(start?: number | string | Date, end?: number | string | Date, includeLastBeforeStart?: boolean): AsyncIterableIterator<SpinalDateValue>;
     /**
+     * This function is used to get the last timeseries at a specific date.
+     * It will fetch the last timeseries before or at the given date.
+     * @param date
+     */
+    getLastTimeSeriesAtDate(date: number | string | Date): Promise<SpinalDateValue>;
+    /**
      * getFromIntervalTimeGen is prefered.
      * @param {number} start
      * @param {(number|string)} [end=Date.now()]
@@ -60,7 +66,7 @@ export declare class SpinalTimeSeriesArchive extends Model {
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
      * @memberof SpinalTimeSeriesArchive
      */
-    getArchiveAtDate(date: number | string | Date): Promise<SpinalTimeSeriesArchiveDay>;
+    getArchiveAtDate(date: number | string | Date, offsetArchive?: number): Promise<SpinalTimeSeriesArchiveDay>;
     /**
      * @returns {Lst<Val>}
      * @memberof SpinalTimeSeriesArchive

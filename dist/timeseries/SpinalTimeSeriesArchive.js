@@ -188,6 +188,12 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
             if (isNaN(normalizedEnd)) {
                 throw `the value 'end' [${end}] is not a valid date`;
             }
+            if (includeLastBeforeStart) {
+                const lastTs = yield __await(this.getLastTimeSeriesAtDate(startEpoch));
+                if (lastTs && lastTs.date < startEpoch) { // only yield if before start date because if equal it will be yielded in the main loop
+                    yield yield __await(lastTs);
+                }
+            }
             for (let idx = 0; idx < this.lstDate.length; idx += 1) {
                 const element = this.lstDate[idx].get();
                 if (normalizedStart > element)
@@ -218,21 +224,6 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                         }
                         lastData = dateValue; // retain last value before start condition is met.
                     }
-                    if (includeLastBeforeStart) {
-                        if (!lastData) {
-                            let backtrack = idx - 1;
-                            while (!lastData && backtrack >= 0) {
-                                const lastArchive = yield __await(this.getArchiveAtDate(this.lstDate[backtrack].get()));
-                                if (lastArchive.length.get() > 0) {
-                                    lastData = lastArchive.get(lastArchive.length.get() - 1);
-                                }
-                                backtrack--;
-                            }
-                        }
-                        if (lastData) {
-                            yield yield __await(lastData); // yield the last value before start.
-                        }
-                    }
                 }
                 for (; index < archiveLen; index += 1) {
                     const dateValue = archive.get(index);
@@ -243,6 +234,50 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                     yield yield __await(dateValue);
                 }
             }
+        });
+    }
+    /**
+     * This function is used to get the last timeseries at a specific date.
+     * It will fetch the last timeseries before or at the given date.
+     * @param date
+     */
+    getLastTimeSeriesAtDate(date) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const normalizedDate = SpinalTimeSeriesArchive.normalizeDate(date);
+            if (isNaN(normalizedDate)) {
+                throw `the value [${date}] is not a valid date`;
+            }
+            let validArchiveDate = null;
+            let idx;
+            for (idx = 0; idx < this.lstDate.length; idx += 1) {
+                const element = this.lstDate[idx].get();
+                if (element > normalizedDate)
+                    break; // Skip until correct day.
+                validArchiveDate = element;
+            }
+            if (validArchiveDate === null)
+                return null;
+            const archive = yield this.getArchiveAtDate(validArchiveDate);
+            const startEpoch = typeof date === 'number' || typeof date === 'string'
+                ? new Date(date).getTime()
+                : date.getTime();
+            const archiveLen = archive.length.get();
+            for (let index = archiveLen - 1; index >= 0; index -= 1) {
+                const dateValue = archive.get(index);
+                if (dateValue.date <= startEpoch) {
+                    return dateValue;
+                }
+            }
+            // if no data found in the current archive, return last data from previous archive
+            idx -= 2; // move to previous archive
+            if (idx < 0)
+                return null; // no previous archive
+            const previousArchiveDate = this.lstDate[idx].get();
+            const previousArchive = yield this.getArchiveAtDate(previousArchiveDate);
+            const previousArchiveLen = previousArchive.length.get();
+            if (previousArchiveLen === 0)
+                return null;
+            return previousArchive.get(previousArchiveLen - 1);
         });
     }
     /**
@@ -285,7 +320,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
      * @memberof SpinalTimeSeriesArchive
      */
-    getArchiveAtDate(date) {
+    getArchiveAtDate(date, offsetArchive = 0) {
         this.cleanUpNaNDates();
         const normalizedDate = SpinalTimeSeriesArchive.normalizeDate(date);
         if (isNaN(normalizedDate)) {
@@ -294,9 +329,13 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
         if (this.itemLoadedDictionary.has(normalizedDate)) {
             return this.itemLoadedDictionary.get(normalizedDate);
         }
-        const idx = this.lstDate.indexOf(normalizedDate);
+        let idx = this.lstDate.indexOf(normalizedDate);
         if (idx < 0)
-            return Promise.reject(new Error(`Date '${date}' not fond.`));
+            return Promise.reject(new Error(`Date '${date}' not found.`));
+        idx += offsetArchive;
+        if (idx < 0 || idx >= this.lstDate.length) {
+            return Promise.reject(new Error(`Offset '${offsetArchive}' is out of bounds for date '${date}'.`));
+        }
         const promise = getArchive.call(this);
         this.itemLoadedDictionary.set(normalizedDate, promise);
         return promise;

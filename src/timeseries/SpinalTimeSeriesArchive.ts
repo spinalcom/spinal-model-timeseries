@@ -186,8 +186,8 @@ export class SpinalTimeSeriesArchive extends Model {
         : end.getTime();
 
     const startEpoch = typeof start === 'number' || typeof start === 'string'
-    ? new Date(start).getTime()
-    : start.getTime();
+      ? new Date(start).getTime()
+      : start.getTime();
 
     if (isNaN(normalizedStart)) {
       throw `the value 'start' [${start}] is not a valid date`;
@@ -195,62 +195,112 @@ export class SpinalTimeSeriesArchive extends Model {
     if (isNaN(normalizedEnd)) {
       throw `the value 'end' [${end}] is not a valid date`;
     }
+
+    if (includeLastBeforeStart) {
+      const lastTs = await this.getLastTimeSeriesAtDate(startEpoch);
+      if (lastTs && lastTs.date < startEpoch) { // only yield if before start date because if equal it will be yielded in the main loop
+        yield lastTs;
+      }
+    }
+
+
+
     for (let idx = 0; idx < this.lstDate.length; idx += 1) {
       const element = this.lstDate[idx].get();
       if (normalizedStart > element) continue; // Skip until correct day.
-
       const archive = await this.getArchiveAtDate(element); // Get the archive for the day.
       let index = 0;
       if (!archive.length?.get()) { // Fix added for weird case where archive.length has been corrupted.
-      const incorrectlyNamedAttr = archive._attribute_names.find((attrName) => {
-        return !['lstDate', 'lstValue' , 'length','dateDay'].includes(attrName)
-      })
+        const incorrectlyNamedAttr = archive._attribute_names.find((attrName) => {
+          return !['lstDate', 'lstValue', 'length', 'dateDay'].includes(attrName)
+        })
 
-      if( incorrectlyNamedAttr ) {
-        const lengthValue = archive[incorrectlyNamedAttr].get();
-        archive.add_attr('length', lengthValue);
-        archive.rem_attr(incorrectlyNamedAttr);
+        if (incorrectlyNamedAttr) {
+          const lengthValue = archive[incorrectlyNamedAttr].get();
+          archive.add_attr('length', lengthValue);
+          archive.rem_attr(incorrectlyNamedAttr);
+        }
       }
-    }
       const archiveLen = archive.length.get();
       if (normalizedStart === element) {
         let lastData = null;
         for (; index < archiveLen; index += 1) {
           const dateValue = archive.get(index);
-          if(dateValue.date > startEpoch) {
+          if (dateValue.date > startEpoch) {
             break
           }
-          if(dateValue.date == startEpoch) {
+          if (dateValue.date == startEpoch) {
             includeLastBeforeStart = false;
             break;
           }
           lastData = dateValue; // retain last value before start condition is met.
         }
 
-        if(includeLastBeforeStart) {
-          if(!lastData) {
-            let backtrack = idx-1;
-            while(!lastData && backtrack >= 0) {      
-              const lastArchive = await this.getArchiveAtDate(this.lstDate[backtrack].get());
-              if(lastArchive.length.get() > 0) {
-                lastData = lastArchive.get(lastArchive.length.get()-1);
-              }
-              backtrack--;
-            }
-          }
-          if(lastData) {
-              yield lastData; // yield the last value before start.
-          }
-        }
       }
-
       for (; index < archiveLen; index += 1) {
         const dateValue = archive.get(index);
-        if( dateValue.date === 0 ) continue; // skip empty timeseries
+        if (dateValue.date === 0) continue; // skip empty timeseries
         if (dateValue.date > normalizedEnd || dateValue.date < normalizedStart) return;
         yield dateValue;
       }
     }
+
+  }
+
+
+  /**
+   * This function is used to get the last timeseries at a specific date.
+   * It will fetch the last timeseries before or at the given date.
+   * @param date 
+   */
+  public async getLastTimeSeriesAtDate(
+    date: number | string | Date
+  ) {
+    const normalizedDate: number = SpinalTimeSeriesArchive.normalizeDate(date);
+    if (isNaN(normalizedDate)) {
+      throw `the value [${date}] is not a valid date`;
+    }
+
+
+    let validArchiveDate = null;
+    let idx;
+
+    for (idx = 0; idx < this.lstDate.length; idx += 1) {
+      const element = this.lstDate[idx].get();
+      if (element > normalizedDate) break; // Skip until correct day.
+      validArchiveDate = element;
+    }
+
+    if (validArchiveDate === null) return null;
+
+
+    const archive = await this.getArchiveAtDate(validArchiveDate);
+
+    const startEpoch = typeof date === 'number' || typeof date === 'string'
+      ? new Date(date).getTime()
+      : date.getTime();
+
+    const archiveLen = archive.length.get();
+    for (let index = archiveLen - 1; index >= 0; index -= 1) {
+      const dateValue = archive.get(index);
+      if (dateValue.date <= startEpoch) {
+        return dateValue;
+      }
+    }
+
+
+
+    // if no data found in the current archive, return last data from previous archive
+    idx -= 2; // move to previous archive
+    if (idx < 0) return null; // no previous archive
+    const previousArchiveDate = this.lstDate[idx].get();
+    const previousArchive = await this.getArchiveAtDate(previousArchiveDate);
+    const previousArchiveLen = previousArchive.length.get();
+    if (previousArchiveLen === 0) return null;
+    return previousArchive.get(previousArchiveLen - 1);
+
+
+
   }
 
   /**
@@ -279,7 +329,8 @@ export class SpinalTimeSeriesArchive extends Model {
    * @memberof SpinalTimeSeriesArchive
    */
   public getArchiveAtDate(
-    date: number | string | Date
+    date: number | string | Date,
+    offsetArchive: number = 0
   ): Promise<SpinalTimeSeriesArchiveDay> {
     this.cleanUpNaNDates();
     const normalizedDate: number = SpinalTimeSeriesArchive.normalizeDate(date);
@@ -289,8 +340,17 @@ export class SpinalTimeSeriesArchive extends Model {
     if (this.itemLoadedDictionary.has(normalizedDate)) {
       return this.itemLoadedDictionary.get(normalizedDate);
     }
-    const idx = this.lstDate.indexOf(normalizedDate);
-    if (idx < 0) return Promise.reject(new Error(`Date '${date}' not fond.`));
+    let idx = this.lstDate.indexOf(normalizedDate);
+    if (idx < 0) return Promise.reject(new Error(`Date '${date}' not found.`));
+
+    idx += offsetArchive;
+    if (idx < 0 || idx >= this.lstDate.length) {
+      return Promise.reject(
+        new Error(
+          `Offset '${offsetArchive}' is out of bounds for date '${date}'.`
+        )
+      );
+    }
 
     const promise: Promise<SpinalTimeSeriesArchiveDay> = getArchive.call(this);
     this.itemLoadedDictionary.set(normalizedDate, promise);
