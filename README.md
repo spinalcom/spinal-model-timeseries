@@ -25,6 +25,12 @@ pushFromEndpoint(endpointNodeId: EndpointId, value: number | boolean): Promise<b
 insertFromEndpoint(endpointNodeId: EndpointId, value: number | boolean, date: number | string | Date): Promise<boolean>;
 ```
 
+A pushed value is dated when `pushFromEndpoint` (or `SpinalTimeSeries.push`) is
+called, not when it is stored : finding the timeseries or loading the archive
+of the day can wait for the hub, and the value keeps its time. A value measured
+earlier can be pushed with its own date : `timeseries.push(value, date)`.
+Concurrent calls for an endpoint without timeseries create a single one.
+
 ### Get Date Interface
 
 ```ts
@@ -41,3 +47,9 @@ getMax(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDat
 getMin(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDate): Promise<number>;
 getSum(endpointNodeId: EndpointId, timeSeriesIntervalDate: TimeSeriesIntervalDate): Promise<number>;
 ```
+
+Reading an interval loads its days a few at a time, the next ones while one is
+read, instead of one round trip to the hub per day :
+`SpinalTimeSeriesArchive.loadAhead` days at once (8 by default). More is faster
+on long intervals, but the hub sends them in one answer, that the program
+handles at once.

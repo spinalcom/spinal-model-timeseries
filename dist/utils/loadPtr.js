@@ -45,8 +45,14 @@ function loadPtr(loadPtrDictionary, ptr) {
         loadPtrDictionary.set(ptr.data.value, res);
         return Promise.resolve(res);
     }
+    const id = ptr.data.value;
     const res = ptr.load();
-    loadPtrDictionary.set(ptr.data.value, res);
+    loadPtrDictionary.set(id, res);
+    // a failed load is tried again on the next call, instead of failing forever
+    res.catch(() => {
+        if (loadPtrDictionary.get(id) === res)
+            loadPtrDictionary.delete(id);
+    });
     return res;
 }
 exports.loadPtr = loadPtr;

@@ -6,7 +6,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "dev": "rm -rf dist && tsc --watch & nodemon dist",
-    "test": "rm -rf dist && tsc && nyc mocha --require ts-node/register test/**/*.ts",
+    "test": "rm -rf dist && tsc && nyc mocha --require ts-node/register test/**/*.ts --no-experimental-strip-types",
     "docs": "typedoc --readme README.md src"
   },
   "repository": {

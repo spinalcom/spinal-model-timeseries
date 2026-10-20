@@ -37,7 +37,6 @@ const spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-servi
 const spinal_env_viewer_plugin_documentation_service_1 = require("spinal-env-viewer-plugin-documentation-service");
 const SpinalTimeSeries_1 = require("./SpinalTimeSeries");
 const SpinalTimeSeriesConfig_1 = require("../SpinalTimeSeriesConfig");
-const asyncGenToArray_1 = require("../utils/asyncGenToArray");
 /**
  * @class SpinalServiceTimeseries
  */
@@ -57,13 +56,15 @@ class SpinalServiceTimeseries {
      */
     pushFromEndpoint(endpointNodeId, value) {
         return __awaiter(this, void 0, void 0, function* () {
+            // the time of the measure : finding the timeseries can wait for the hub
+            const date = Date.now();
             try {
                 const timeseries = yield this.getOrCreateTimeSeries(endpointNodeId);
                 let valueToPush = value;
                 if (typeof value === 'boolean') {
                     valueToPush = value ? 1 : 0;
                 }
-                yield timeseries.push(valueToPush);
+                yield timeseries.push(valueToPush, date);
             }
             catch (error) {
                 return false;
@@ -119,15 +120,42 @@ class SpinalServiceTimeseries {
      * @memberof SpinalServiceTimeseries
      */
     getOrCreateTimeSeries(endpointNodeId) {
+        if (this.timeSeriesDictionnary.has(endpointNodeId)) {
+            return this.timeSeriesDictionnary.get(endpointNodeId);
+        }
+        // kept before anything is awaited : the calls made meanwhile for the same
+        // endpoint wait for this one, instead of creating a timeseries each
+        return this.keep(endpointNodeId, this.loadOrCreateTimeSeries(endpointNodeId));
+    }
+    loadOrCreateTimeSeries(endpointNodeId) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.timeSeriesDictionnary.has(endpointNodeId)) {
-                return this.timeSeriesDictionnary.get(endpointNodeId);
-            }
             const cfg = yield this.getConfigFormEndpoint(endpointNodeId);
-            const promise = new Promise(this.getOrCreateTimeSeriesProm(endpointNodeId, cfg));
-            this.timeSeriesDictionnary.set(endpointNodeId, promise);
-            return promise;
+            const children = yield spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(endpointNodeId, [
+                SpinalTimeSeries_1.SpinalTimeSeries.relationName,
+            ]);
+            if (children.length === 0) {
+                // create element
+                const timeSeries = new SpinalTimeSeries_1.SpinalTimeSeries(cfg.initialBlockSize, cfg.maxDay);
+                // create node
+                const node = spinal_env_viewer_graph_service_1.SpinalGraphService.createNode({ timeSeriesId: timeSeries.id.get() }, timeSeries);
+                // push node to parent
+                yield spinal_env_viewer_graph_service_1.SpinalGraphService.addChild(endpointNodeId, node, SpinalTimeSeries_1.SpinalTimeSeries.relationName, spinal_env_viewer_graph_service_1.SPINAL_RELATION_PTR_LST_TYPE);
+                return timeSeries;
+            }
+            const timeSeries = yield children[0].element.load();
+            yield timeSeries.setConfig(cfg.initialBlockSize, cfg.maxDay);
+            return timeSeries;
         });
+    }
+    /** keeps a timeseries loading, forgets it if it fails : the next call tries again */
+    keep(endpointNodeId, promise) {
+        this.timeSeriesDictionnary.set(endpointNodeId, promise);
+        promise.catch(() => {
+            if (this.timeSeriesDictionnary.get(endpointNodeId) === promise) {
+                this.timeSeriesDictionnary.delete(endpointNodeId);
+            }
+        });
+        return promise;
     }
     getConfigFormEndpoint(endpointNodeId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -137,13 +165,18 @@ class SpinalServiceTimeseries {
                 const attrs = yield spinal_env_viewer_plugin_documentation_service_1.attributeService.getAttributesByCategory(node, cat);
                 let maxDay = null;
                 let initialBlockSize = null;
+                // the values stored, to only write the attributes that need it
+                let storedMaxDay = null;
+                let storedInitialBlockSize = null;
                 for (const attr of attrs) {
                     switch (attr.label.get()) {
                         case 'timeSeries maxDay':
-                            maxDay = parseInt(attr.value.get().toString());
+                            storedMaxDay = attr.value.get().toString();
+                            maxDay = parseInt(storedMaxDay);
                             break;
                         case 'timeSeries initialBlockSize':
-                            initialBlockSize = parseInt(attr.value.get().toString());
+                            storedInitialBlockSize = attr.value.get().toString();
+                            initialBlockSize = parseInt(storedInitialBlockSize);
                             break;
                         default:
                             break;
@@ -154,9 +187,13 @@ class SpinalServiceTimeseries {
                     initialBlockSize === null
                         ? SpinalTimeSeriesConfig_1.SpinalTimeSeriesConfig.INIT_BLOCK_SIZE
                         : initialBlockSize;
-                //
-                yield spinal_env_viewer_plugin_documentation_service_1.attributeService.addAttributeByCategoryName(node, 'default', 'timeSeries maxDay', maxDay.toString());
-                yield spinal_env_viewer_plugin_documentation_service_1.attributeService.addAttributeByCategoryName(node, 'default', 'timeSeries initialBlockSize', initialBlockSize.toString());
+                // written when missing or different : each write looks the category up again
+                if (storedMaxDay !== maxDay.toString()) {
+                    yield spinal_env_viewer_plugin_documentation_service_1.attributeService.addAttributeByCategoryName(node, 'default', 'timeSeries maxDay', maxDay.toString());
+                }
+                if (storedInitialBlockSize !== initialBlockSize.toString()) {
+                    yield spinal_env_viewer_plugin_documentation_service_1.attributeService.addAttributeByCategoryName(node, 'default', 'timeSeries initialBlockSize', initialBlockSize.toString());
+                }
                 return {
                     maxDay: maxDay,
                     initialBlockSize: initialBlockSize,
@@ -168,30 +205,6 @@ class SpinalServiceTimeseries {
                     initialBlockSize: SpinalTimeSeriesConfig_1.SpinalTimeSeriesConfig.INIT_BLOCK_SIZE,
                 };
             }
-        });
-    }
-    getOrCreateTimeSeriesProm(endpointNodeId, cfg) {
-        return (resolve) => __awaiter(this, void 0, void 0, function* () {
-            const children = yield spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(endpointNodeId, [
-                SpinalTimeSeries_1.SpinalTimeSeries.relationName,
-            ]);
-            let timeSeriesProm;
-            if (children.length === 0) {
-                // create element
-                const timeSeries = new SpinalTimeSeries_1.SpinalTimeSeries(cfg.initialBlockSize, cfg.maxDay);
-                timeSeriesProm = timeSeries;
-                // create node
-                const node = spinal_env_viewer_graph_service_1.SpinalGraphService.createNode({ timeSeriesId: timeSeries.id.get() }, timeSeries);
-                // push node to parent
-                yield spinal_env_viewer_graph_service_1.SpinalGraphService.addChild(endpointNodeId, node, SpinalTimeSeries_1.SpinalTimeSeries.relationName, spinal_env_viewer_graph_service_1.SPINAL_RELATION_PTR_LST_TYPE);
-            }
-            else {
-                const timeSeries = yield (children[0].element.load());
-                yield timeSeries.setConfig(cfg.initialBlockSize, cfg.maxDay);
-                timeSeriesProm = timeSeries;
-            }
-            resolve(timeSeriesProm);
-            return timeSeriesProm;
         });
     }
     /**
@@ -265,9 +278,7 @@ class SpinalServiceTimeseries {
             if (children.length === 0) {
                 return undefined;
             }
-            const prom = children[0].element.load();
-            this.timeSeriesDictionnary.set(endpointNodeId, prom);
-            return prom;
+            return this.keep(endpointNodeId, children[0].element.load());
         });
     }
     /**
@@ -304,7 +315,8 @@ class SpinalServiceTimeseries {
             const timeSeries = yield this.getTimeSeries(endpointNodeId);
             if (!timeSeries)
                 throw new Error('endpoint have no timeseries');
-            return (0, asyncGenToArray_1.asyncGenToArray)(yield this.getFromIntervalTimeGen(timeSeries, timeSeriesIntervalDate.start, timeSeriesIntervalDate.end, includeLastBeforeStart));
+            // the array read : the same values, without going through the generator
+            return this.getFromIntervalTime(timeSeries, timeSeriesIntervalDate.start, timeSeriesIntervalDate.end, includeLastBeforeStart);
         });
     }
     /**

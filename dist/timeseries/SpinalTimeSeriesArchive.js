@@ -9,6 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __await = (this && this.__await) || function (v) { return this instanceof __await ? (this.v = v, this) : new __await(v); }
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _arguments, generator) {
     if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
     var g = generator.apply(thisArg, _arguments || []), i, q = [];
@@ -19,13 +26,6 @@ var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _ar
     function fulfill(value) { resume("next", value); }
     function reject(value) { resume("throw", value); }
     function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
-};
-var __asyncValues = (this && this.__asyncValues) || function (o) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator], i;
-    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SpinalTimeSeriesArchive = void 0;
@@ -89,26 +89,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getTodayArchive() {
-        this.cleanUpNaNDates();
-        const now = Date.now();
-        const date = SpinalTimeSeriesArchive.normalizeDate(now);
-        const spinalTimeSeriesArchiveDay = this.itemLoadedDictionary.get(date);
-        if (spinalTimeSeriesArchiveDay !== undefined) {
-            return spinalTimeSeriesArchiveDay;
-        }
-        for (let index = 0; index < this.lstDate.length; index += 1) {
-            const element = this.lstDate[index];
-            const ptr = this.lstItem[index];
-            if (element.get() === date) {
-                return (0, loadPtr_1.loadPtr)(this.loadPtrDictionary, ptr);
-            }
-        }
-        const value = new SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
-        this.lstDate.push(date);
-        this.lstItem.push(new spinal_core_connectorjs_1.Ptr(value));
-        const prom = Promise.resolve(value);
-        this.itemLoadedDictionary.set(date, prom);
-        return prom;
+        return this.getOrCreateArchiveAtDate(Date.now());
     }
     /**
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
@@ -128,7 +109,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
             const element = this.lstDate[index];
             const ptr = this.lstItem[index];
             if (element.get() === date) {
-                return (0, loadPtr_1.loadPtr)(this.loadPtrDictionary, ptr);
+                return this.keepLoaded(date, (0, loadPtr_1.loadPtr)(this.loadPtrDictionary, ptr));
             }
         }
         const value = new SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
@@ -172,67 +153,99 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getFromIntervalTimeGen(start = 0, end = Date.now(), includeLastBeforeStart = false) {
-        var _a;
         return __asyncGenerator(this, arguments, function* getFromIntervalTimeGen_1() {
-            this.cleanUpNaNDates();
-            const normalizedStart = SpinalTimeSeriesArchive.normalizeDate(start); // Get the date at start of the day
-            const normalizedEnd = typeof end === 'number' || typeof end === 'string'
-                ? new Date(end).getTime()
-                : end.getTime();
-            const startEpoch = typeof start === 'number' || typeof start === 'string'
-                ? new Date(start).getTime()
-                : start.getTime();
-            if (isNaN(normalizedStart)) {
-                throw `the value 'start' [${start}] is not a valid date`;
-            }
-            if (isNaN(normalizedEnd)) {
-                throw `the value 'end' [${end}] is not a valid date`;
-            }
+            var _a, e_1, _b, _c;
+            const interval = this.intervalOf(start, end);
             if (includeLastBeforeStart) {
-                const lastTs = yield __await(this.getLastTimeSeriesAtDate(startEpoch));
-                if (lastTs && lastTs.date < startEpoch) { // only yield if before start date because if equal it will be yielded in the main loop
+                const lastTs = yield __await(this.getLastTimeSeriesAtDate(interval.startEpoch));
+                if (lastTs && lastTs.date < interval.startEpoch) { // only yield if before start date because if equal it will be yielded in the main loop
                     yield yield __await(lastTs);
                 }
             }
-            for (let idx = 0; idx < this.lstDate.length; idx += 1) {
-                const element = this.lstDate[idx].get();
-                if (normalizedStart > element)
-                    continue; // Skip until correct day.
-                const archive = yield __await(this.getArchiveAtDate(element)); // Get the archive for the day.
-                let index = 0;
-                if (!((_a = archive.length) === null || _a === void 0 ? void 0 : _a.get())) { // Fix added for weird case where archive.length has been corrupted.
-                    const incorrectlyNamedAttr = archive._attribute_names.find((attrName) => {
-                        return !['lstDate', 'lstValue', 'length', 'dateDay'].includes(attrName);
-                    });
-                    if (incorrectlyNamedAttr) {
-                        const lengthValue = archive[incorrectlyNamedAttr].get();
-                        archive.add_attr('length', lengthValue);
-                        archive.rem_attr(incorrectlyNamedAttr);
+            try {
+                for (var _d = true, _e = __asyncValues(this.valuesByDay(interval)), _f; _f = yield __await(_e.next()), _a = _f.done, !_a;) {
+                    _c = _f.value;
+                    _d = false;
+                    try {
+                        const values = _c;
+                        for (const value of values)
+                            yield yield __await(value);
+                    }
+                    finally {
+                        _d = true;
                     }
                 }
-                const archiveLen = archive.length.get();
-                if (normalizedStart === element) {
-                    let lastData = null;
-                    for (; index < archiveLen; index += 1) {
-                        const dateValue = archive.get(index);
-                        if (dateValue.date > startEpoch) {
-                            break;
-                        }
-                        if (dateValue.date == startEpoch) {
-                            includeLastBeforeStart = false;
-                            break;
-                        }
-                        lastData = dateValue; // retain last value before start condition is met.
-                    }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = _e.return)) yield __await(_b.call(_e));
                 }
-                for (; index < archiveLen; index += 1) {
-                    const dateValue = archive.get(index);
-                    if (dateValue.date === 0)
-                        continue; // skip empty timeseries
-                    if (dateValue.date > normalizedEnd || dateValue.date < normalizedStart)
-                        return yield __await(void 0);
-                    yield yield __await(dateValue);
+                finally { if (e_1) throw e_1.error; }
+            }
+        });
+    }
+    /**
+     * The interval asked, checked, and the days that may hold it, in the order
+     * of the list : the readers go through them in that order.
+     */
+    intervalOf(start, end) {
+        this.cleanUpNaNDates();
+        const normalizedStart = SpinalTimeSeriesArchive.normalizeDate(start); // Get the date at start of the day
+        const endEpoch = typeof end === 'number' || typeof end === 'string'
+            ? new Date(end).getTime()
+            : end.getTime();
+        const startEpoch = typeof start === 'number' || typeof start === 'string'
+            ? new Date(start).getTime()
+            : start.getTime();
+        if (isNaN(normalizedStart)) {
+            throw `the value 'start' [${start}] is not a valid date`;
+        }
+        if (isNaN(endEpoch)) {
+            throw `the value 'end' [${end}] is not a valid date`;
+        }
+        // a date listed twice reads its first archive, like getArchiveAtDate
+        const firstPtr = new Map();
+        const dates = [];
+        for (let idx = 0; idx < this.lstDate.length; idx += 1) {
+            const date = this.lstDate[idx].get();
+            if (!firstPtr.has(date))
+                firstPtr.set(date, this.lstItem[idx]);
+            if (normalizedStart > date)
+                continue; // Skip until correct day.
+            dates.push(date);
+        }
+        const days = dates.map((date) => ({ date, ptr: firstPtr.get(date) }));
+        return { normalizedStart, startEpoch, endEpoch, days };
+    }
+    /**
+     * The values of an interval, a day at a time. The next days load while one
+     * is read : SpinalTimeSeriesArchive.loadAhead days at once, not one round
+     * trip to the hub per day, nor one answer big enough to block the program.
+     */
+    valuesByDay(interval) {
+        return __asyncGenerator(this, arguments, function* valuesByDay_1() {
+            const { days } = interval;
+            // the days after the first one past the interval are only read if it is
+            // empty : they load when needed, not ahead
+            const firstAfter = days.findIndex((day) => day.date > interval.endEpoch);
+            const aheadLimit = firstAfter < 0 ? days.length : firstAfter + 1;
+            const ahead = [];
+            let next = 0;
+            for (let i = 0; i < days.length; i += 1) {
+                while (next < days.length &&
+                    (next === i ||
+                        (next < aheadLimit && next - i < SpinalTimeSeriesArchive.loadAhead))) {
+                    ahead.push(this.loadDay(days[next].date, days[next].ptr));
+                    next += 1;
                 }
+                const archive = yield __await(ahead.shift());
+                const values = [];
+                const goOn = readDay(archive, days[i].date, interval, values);
+                if (values.length > 0)
+                    yield yield __await(values);
+                if (!goOn)
+                    return yield __await(void 0);
             }
         });
     }
@@ -289,28 +302,36 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getFromIntervalTime(start, end = Date.now(), includeLastBeforeStart = false) {
-        var _a, e_1, _b, _c;
+        var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
+            const interval = this.intervalOf(start, end);
             const result = [];
+            if (includeLastBeforeStart) {
+                const lastTs = yield this.getLastTimeSeriesAtDate(interval.startEpoch);
+                if (lastTs && lastTs.date < interval.startEpoch)
+                    result.push(lastTs);
+            }
             try {
-                for (var _d = true, _e = __asyncValues(this.getFromIntervalTimeGen(start, end, includeLastBeforeStart)), _f; _f = yield _e.next(), _a = _f.done, !_a;) {
+                // a day at a time, not a value at a time through the generator
+                for (var _d = true, _e = __asyncValues(this.valuesByDay(interval)), _f; _f = yield _e.next(), _a = _f.done, !_a;) {
                     _c = _f.value;
                     _d = false;
                     try {
-                        const data = _c;
-                        result.push(data);
+                        const values = _c;
+                        for (const value of values)
+                            result.push(value);
                     }
                     finally {
                         _d = true;
                     }
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
             finally {
                 try {
                     if (!_d && !_a && (_b = _e.return)) yield _b.call(_e);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_2) throw e_2.error; }
             }
             return result;
         });
@@ -326,7 +347,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
         if (isNaN(normalizedDate)) {
             throw `the value [${date}] is not a valid date`;
         }
-        if (this.itemLoadedDictionary.has(normalizedDate)) {
+        if (offsetArchive === 0 && this.itemLoadedDictionary.has(normalizedDate)) {
             return this.itemLoadedDictionary.get(normalizedDate);
         }
         let idx = this.lstDate.indexOf(normalizedDate);
@@ -336,22 +357,42 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
         if (idx < 0 || idx >= this.lstDate.length) {
             return Promise.reject(new Error(`Offset '${offsetArchive}' is out of bounds for date '${date}'.`));
         }
-        const promise = getArchive.call(this);
-        this.itemLoadedDictionary.set(normalizedDate, promise);
-        return promise;
-        function getArchive() {
-            return new Promise((resolve) => {
-                const ptr = this.lstItem[idx];
-                if (typeof ptr.data.model !== 'undefined') {
-                    resolve(ptr.data.model);
-                }
-                else {
-                    ptr.load((element) => {
-                        resolve(element);
-                    });
-                }
-            });
+        // the day loaded, which is not the one asked with an offset
+        const archiveDate = this.lstDate[idx].get();
+        if (this.itemLoadedDictionary.has(archiveDate)) {
+            return this.itemLoadedDictionary.get(archiveDate);
         }
+        return this.loadDay(archiveDate, this.lstItem[idx]);
+    }
+    /** the archive of a day, loaded once ; a failed load is tried again on the next call */
+    loadDay(date, ptr) {
+        const loaded = this.itemLoadedDictionary.get(date);
+        if (loaded !== undefined)
+            return loaded;
+        const promise = new Promise((resolve, reject) => {
+            if (typeof ptr.data.model !== 'undefined') {
+                resolve(ptr.data.model);
+            }
+            else {
+                ptr.load((element, error) => {
+                    if (element && !error)
+                        resolve(element);
+                    else
+                        reject(new Error(`the archive of the day ${new Date(date).toISOString()} could not be loaded`));
+                });
+            }
+        });
+        return this.keepLoaded(date, promise);
+    }
+    /** keeps a day loading, forgets it if the load fails : the next call tries again */
+    keepLoaded(date, promise) {
+        this.itemLoadedDictionary.set(date, promise);
+        promise.catch(() => {
+            if (this.itemLoadedDictionary.get(date) === promise) {
+                this.itemLoadedDictionary.delete(date);
+            }
+        });
+        return promise;
     }
     /**
      * @returns {Lst<Val>}
@@ -387,14 +428,61 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                 let id = this.lstDate.indexOf(elt);
                 this.lstDate.splice(id, 1);
                 this.lstItem.splice(id, 1);
+                // a value inserted later at this date goes to a new archive, not the purged one
+                this.itemLoadedDictionary.delete(elt);
             }
         }
         else if (maxDay === 0) {
             this.lstDate.clear();
             this.lstItem.clear();
+            this.itemLoadedDictionary.clear();
         }
     }
 }
 exports.SpinalTimeSeriesArchive = SpinalTimeSeriesArchive;
+/**
+ * number of days a read loads ahead : more is faster on long intervals, but
+ * the hub sends them in one answer, that the program handles at once
+ */
+SpinalTimeSeriesArchive.loadAhead = 8;
+/**
+ * Pushes the values of a day that are in the interval, the way the reading
+ * always went : the day of the start skips the values before it, and the
+ * interval is over at the first value after its end. Returns false then.
+ */
+function readDay(archive, dayDate, interval, out) {
+    repairLength(archive);
+    const archiveLen = archive.length.get();
+    let index = 0;
+    if (interval.normalizedStart === dayDate) {
+        for (; index < archiveLen; index += 1) {
+            if (archive.get(index).date >= interval.startEpoch)
+                break;
+        }
+    }
+    for (; index < archiveLen; index += 1) {
+        const dateValue = archive.get(index);
+        if (dateValue.date === 0)
+            continue; // skip empty timeseries
+        if (dateValue.date > interval.endEpoch || dateValue.date < interval.normalizedStart)
+            return false;
+        out.push(dateValue);
+    }
+    return true;
+}
+/** Fix added for weird case where archive.length has been corrupted. */
+function repairLength(archive) {
+    var _a;
+    if ((_a = archive.length) === null || _a === void 0 ? void 0 : _a.get())
+        return;
+    const incorrectlyNamedAttr = archive._attribute_names.find((attrName) => {
+        return !['lstDate', 'lstValue', 'length', 'dateDay'].includes(attrName);
+    });
+    if (incorrectlyNamedAttr) {
+        const lengthValue = archive[incorrectlyNamedAttr].get();
+        archive.add_attr('length', lengthValue);
+        archive.rem_attr(incorrectlyNamedAttr);
+    }
+}
 spinal_core_connectorjs_1.spinalCore.register_models(SpinalTimeSeriesArchive);
 //# sourceMappingURL=SpinalTimeSeriesArchive.js.map
