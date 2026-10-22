@@ -70,14 +70,22 @@ export class SpinalTimeSeriesArchiveDay extends Model {
 
   /**
    * @param {number} data
+   * @param {number} [date=Date.now()] the time of the measure
    * @memberof SpinalTimeSeriesArchiveDay
    */
-  push(data: number): void {
+  push(data: number, date: number = Date.now()): void {
     this.upgradeFromOldTimeSeries();
     this.removeTrailingEmptyTimeseries();
-    if (this.lstDate.length <= this.length.get()) this.addBufferSizeLength();
-    this.setLstVal(this.length.get(), Date.now(), data);
-    this.length.set(this.length.get() + 1);
+    const length = this.length.get();
+    // older than the last value stored (its push waited longer, for the hub) :
+    // inserted at its place, so that the day stays sorted
+    if (length > 0 && this.lstDate[length - 1].get() > date) {
+      this.insert(data, date);
+      return;
+    }
+    if (this.lstDate.length <= length) this.addBufferSizeLength();
+    this.setLstVal(length, date, data);
+    this.length.set(length + 1);
   }
   /**
    * @param {number} data

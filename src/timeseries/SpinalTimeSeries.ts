@@ -63,7 +63,8 @@ export class SpinalTimeSeries extends Model {
   public archive: Ptr<SpinalTimeSeriesArchive>;
 
   public archiveProm: Promise<SpinalTimeSeriesArchive>;
-  public currentProm: Promise<SpinalTimeSeriesArchiveDay>;
+  // the archive of the last day pushed to, at hand for the next pushes
+  private dayCache: { day: number; promise: Promise<SpinalTimeSeriesArchiveDay> } = null;
   private loadPtrDictionary: Map<
     number,
     Promise<SpinalTimeSeriesArchiveDay | SpinalTimeSeriesArchive>
@@ -95,7 +96,7 @@ export class SpinalTimeSeries extends Model {
   ) {
     super();
     this.archiveProm = null;
-    this.currentProm = null;
+    this.dayCache = null;
     this.loadPtrDictionary = new Map();
     if (FileSystem._sig_server === false) return;
 
@@ -152,13 +153,7 @@ export class SpinalTimeSeries extends Model {
         value: NaN,
       });
     }
-    let currentDay: SpinalTimeSeriesArchiveDay;
-    try {
-      currentDay = await this.getCurrentDay();
-    } catch (error) {
-      const archive = await this.getArchive();
-      currentDay = await archive.getTodayArchive();
-    }
+    const currentDay = await this.getCurrentDay();
     const len = currentDay.length.get();
     return currentDay.get(len - 1);
   }
@@ -175,32 +170,27 @@ export class SpinalTimeSeries extends Model {
   }
 
   /**
+   * Adds a value at the end of the timeseries.
+   *
+   * The date defaults to the moment push is called, not to the moment the
+   * value is stored : when the archive of the day has to be loaded first, the
+   * hub may take long to answer (or be down), and the value keeps its time.
    * @param {number} value
-   * @returns {Promise<void>}
+   * @param {(number|string|Date)} [date=Date.now()] the time of the measure
+   * @return {*}  {Promise<void>}
    * @memberof SpinalTimeSeries
    */
-  public async push(value: number): Promise<void> {
-    if (this.maxDay.get() === 0) {
-      const archive = await this.getArchive();
-      archive.purgeArchive(this.maxDay.get());
-      return;
-    }
-    let currentDay: SpinalTimeSeriesArchiveDay;
-    try {
-      currentDay = await this.getCurrentDay();
-    } catch (error) {
-      const archive = await this.getArchive();
-      currentDay = await archive.getTodayArchive();
-    }
-    const normalizedDate: number = SpinalTimeSeriesArchive.normalizeDate(
-      Date.now()
-    );
+  public async push(
+    value: number,
+    date: number | string | Date = Date.now()
+  ): Promise<void> {
+    const time = new Date(date).getTime();
+    if (isNaN(time)) throw new Error(`the value [${date}] is not a valid date`);
     const archive = await this.getArchive();
-    if (currentDay.dateDay.get() !== normalizedDate) {
-      this.currentProm = archive.getTodayArchive();
-      currentDay = await this.currentProm;
+    if (this.maxDay.get() !== 0) {
+      const day = await this.getDayArchive(time);
+      day.push(value, time);
     }
-    currentDay.push(value);
     archive.purgeArchive(this.maxDay.get());
   }
 
@@ -240,10 +230,15 @@ export class SpinalTimeSeries extends Model {
    */
   public getArchive(): Promise<SpinalTimeSeriesArchive> {
     if (this.archiveProm !== null) return this.archiveProm;
-    this.archiveProm = <Promise<SpinalTimeSeriesArchive>>(
+    const promise = <Promise<SpinalTimeSeriesArchive>>(
       loadPtr(this.loadPtrDictionary, this.archive)
     );
-    return this.archiveProm;
+    this.archiveProm = promise;
+    // a failed load is tried again on the next call, instead of failing forever
+    promise.catch(() => {
+      if (this.archiveProm === promise) this.archiveProm = null;
+    });
+    return promise;
   }
 
   /**
@@ -251,11 +246,29 @@ export class SpinalTimeSeries extends Model {
    * @memberof SpinalTimeSeries
    */
   public getCurrentDay(): Promise<SpinalTimeSeriesArchiveDay> {
-    if (this.currentProm !== null) return this.currentProm;
-    this.currentProm = <Promise<SpinalTimeSeriesArchiveDay>>(
-      loadPtr(this.loadPtrDictionary, this.currentArchive)
+    return this.getDayArchive(Date.now());
+  }
+
+  /**
+   * The archive of the day of a date, created if needed. The last one is kept
+   * at hand : consecutive pushes do not look for it again.
+   */
+  private getDayArchive(date: number): Promise<SpinalTimeSeriesArchiveDay> {
+    const day = SpinalTimeSeriesArchive.normalizeDate(date);
+    if (this.dayCache !== null && this.dayCache.day === day) {
+      return this.dayCache.promise;
+    }
+    const promise = this.getArchive().then((archive) =>
+      archive.getOrCreateArchiveAtDate(day)
     );
-    return this.currentProm;
+    this.dayCache = { day, promise };
+    // a failed load is tried again on the next call
+    promise.catch(() => {
+      if (this.dayCache !== null && this.dayCache.promise === promise) {
+        this.dayCache = null;
+      }
+    });
+    return promise;
   }
 
   /**

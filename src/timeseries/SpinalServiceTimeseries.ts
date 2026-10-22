@@ -30,7 +30,6 @@ import { attributeService } from 'spinal-env-viewer-plugin-documentation-service
 import { SpinalAttribute } from 'spinal-models-documentation';
 import { SpinalTimeSeries } from './SpinalTimeSeries';
 import { SpinalTimeSeriesConfig } from '../SpinalTimeSeriesConfig';
-import { asyncGenToArray } from '../utils/asyncGenToArray';
 import type { TimeSeriesEndpointCfg } from '../interfaces/TimeSeriesEndpointCfg';
 import type { TimeSeriesIntervalDate } from '../interfaces/TimeSeriesIntervalDate';
 import type { SpinalDateValue } from '../interfaces/SpinalDateValue';
@@ -60,13 +59,15 @@ export class SpinalServiceTimeseries {
     endpointNodeId: EndpointId,
     value: number | boolean
   ): Promise<boolean> {
+    // the time of the measure : finding the timeseries can wait for the hub
+    const date = Date.now();
     try {
       const timeseries = await this.getOrCreateTimeSeries(endpointNodeId);
       let valueToPush = value;
       if (typeof value === 'boolean') {
         valueToPush = value ? 1 : 0;
       }
-      await timeseries.push(<number>valueToPush);
+      await timeseries.push(<number>valueToPush, date);
     } catch (error) {
       return false;
     }
@@ -121,19 +122,60 @@ export class SpinalServiceTimeseries {
    * @returns {Promise<SpinalTimeSeries>}
    * @memberof SpinalServiceTimeseries
    */
-  public async getOrCreateTimeSeries(
+  public getOrCreateTimeSeries(
     endpointNodeId: EndpointId
   ): Promise<SpinalTimeSeries> {
     if (this.timeSeriesDictionnary.has(endpointNodeId)) {
       return this.timeSeriesDictionnary.get(endpointNodeId);
     }
+    // kept before anything is awaited : the calls made meanwhile for the same
+    // endpoint wait for this one, instead of creating a timeseries each
+    return this.keep(endpointNodeId, this.loadOrCreateTimeSeries(endpointNodeId));
+  }
+
+  private async loadOrCreateTimeSeries(
+    endpointNodeId: EndpointId
+  ): Promise<SpinalTimeSeries> {
     const cfg = await this.getConfigFormEndpoint(endpointNodeId);
-    const promise: Promise<SpinalTimeSeries> = new Promise(
-      this.getOrCreateTimeSeriesProm(endpointNodeId, cfg)
-    );
+    const children = await SpinalGraphService.getChildren(endpointNodeId, [
+      SpinalTimeSeries.relationName,
+    ]);
+    if (children.length === 0) {
+      // create element
+      const timeSeries = new SpinalTimeSeries(cfg.initialBlockSize, cfg.maxDay);
+      // create node
+      const node = SpinalGraphService.createNode(
+        { timeSeriesId: timeSeries.id.get() },
+        timeSeries
+      );
+      // push node to parent
+      await SpinalGraphService.addChild(
+        endpointNodeId,
+        node,
+        SpinalTimeSeries.relationName,
+        SPINAL_RELATION_PTR_LST_TYPE
+      );
+      return timeSeries;
+    }
+    const timeSeries = await (<Promise<SpinalTimeSeries>>children[0].element.load());
+    await timeSeries.setConfig(cfg.initialBlockSize, cfg.maxDay);
+    return timeSeries;
+  }
+
+  /** keeps a timeseries loading, forgets it if it fails : the next call tries again */
+  private keep(
+    endpointNodeId: EndpointId,
+    promise: Promise<SpinalTimeSeries>
+  ): Promise<SpinalTimeSeries> {
     this.timeSeriesDictionnary.set(endpointNodeId, promise);
+    promise.catch(() => {
+      if (this.timeSeriesDictionnary.get(endpointNodeId) === promise) {
+        this.timeSeriesDictionnary.delete(endpointNodeId);
+      }
+    });
     return promise;
   }
+
   private async getConfigFormEndpoint(
     endpointNodeId: EndpointId
   ): Promise<TimeSeriesEndpointCfg> {
@@ -145,13 +187,18 @@ export class SpinalServiceTimeseries {
         await attributeService.getAttributesByCategory(node, cat);
       let maxDay: number = null;
       let initialBlockSize: number = null;
+      // the values stored, to only write the attributes that need it
+      let storedMaxDay: string = null;
+      let storedInitialBlockSize: string = null;
       for (const attr of attrs) {
         switch (attr.label.get()) {
           case 'timeSeries maxDay':
-            maxDay = parseInt(attr.value.get().toString());
+            storedMaxDay = attr.value.get().toString();
+            maxDay = parseInt(storedMaxDay);
             break;
           case 'timeSeries initialBlockSize':
-            initialBlockSize = parseInt(attr.value.get().toString());
+            storedInitialBlockSize = attr.value.get().toString();
+            initialBlockSize = parseInt(storedInitialBlockSize);
             break;
           default:
             break;
@@ -162,19 +209,23 @@ export class SpinalServiceTimeseries {
         initialBlockSize === null
           ? SpinalTimeSeriesConfig.INIT_BLOCK_SIZE
           : initialBlockSize;
-      //
-      await attributeService.addAttributeByCategoryName(
-        node,
-        'default',
-        'timeSeries maxDay',
-        maxDay.toString()
-      );
-      await attributeService.addAttributeByCategoryName(
-        node,
-        'default',
-        'timeSeries initialBlockSize',
-        initialBlockSize.toString()
-      );
+      // written when missing or different : each write looks the category up again
+      if (storedMaxDay !== maxDay.toString()) {
+        await attributeService.addAttributeByCategoryName(
+          node,
+          'default',
+          'timeSeries maxDay',
+          maxDay.toString()
+        );
+      }
+      if (storedInitialBlockSize !== initialBlockSize.toString()) {
+        await attributeService.addAttributeByCategoryName(
+          node,
+          'default',
+          'timeSeries initialBlockSize',
+          initialBlockSize.toString()
+        );
+      }
 
       return {
         maxDay: maxDay,
@@ -186,49 +237,6 @@ export class SpinalServiceTimeseries {
         initialBlockSize: SpinalTimeSeriesConfig.INIT_BLOCK_SIZE,
       };
     }
-  }
-
-  private getOrCreateTimeSeriesProm(
-    endpointNodeId: string,
-    cfg: TimeSeriesEndpointCfg
-  ): (
-    resolve: (value: SpinalTimeSeries | PromiseLike<SpinalTimeSeries>) => void,
-    reject: (reason?: any) => void
-  ) => void {
-    return async (resolve) => {
-      const children = await SpinalGraphService.getChildren(endpointNodeId, [
-        SpinalTimeSeries.relationName,
-      ]);
-      let timeSeriesProm: SpinalTimeSeries | PromiseLike<SpinalTimeSeries>;
-      if (children.length === 0) {
-        // create element
-        const timeSeries = new SpinalTimeSeries(
-          cfg.initialBlockSize,
-          cfg.maxDay
-        );
-        timeSeriesProm = timeSeries;
-        // create node
-        const node = SpinalGraphService.createNode(
-          { timeSeriesId: timeSeries.id.get() },
-          timeSeries
-        );
-        // push node to parent
-        await SpinalGraphService.addChild(
-          endpointNodeId,
-          node,
-          SpinalTimeSeries.relationName,
-          SPINAL_RELATION_PTR_LST_TYPE
-        );
-      } else {
-        const timeSeries = await (<Promise<SpinalTimeSeries>>(
-          children[0].element.load()
-        ));
-        await timeSeries.setConfig(cfg.initialBlockSize, cfg.maxDay);
-        timeSeriesProm = timeSeries;
-      }
-      resolve(timeSeriesProm);
-      return timeSeriesProm;
-    };
   }
 
   /**
@@ -324,9 +332,10 @@ export class SpinalServiceTimeseries {
     if (children.length === 0) {
       return undefined;
     }
-    const prom = <Promise<SpinalTimeSeries>>children[0].element.load();
-    this.timeSeriesDictionnary.set(endpointNodeId, prom);
-    return prom;
+    return this.keep(
+      endpointNodeId,
+      <Promise<SpinalTimeSeries>>children[0].element.load()
+    );
   }
 
   /**
@@ -369,13 +378,12 @@ export class SpinalServiceTimeseries {
   ): Promise<SpinalDateValue[]> {
     const timeSeries = await this.getTimeSeries(endpointNodeId);
     if (!timeSeries) throw new Error('endpoint have no timeseries');
-    return asyncGenToArray<SpinalDateValue>(
-      await this.getFromIntervalTimeGen(
-        timeSeries,
-        timeSeriesIntervalDate.start,
-        timeSeriesIntervalDate.end,
-        includeLastBeforeStart
-      )
+    // the array read : the same values, without going through the generator
+    return this.getFromIntervalTime(
+      timeSeries,
+      timeSeriesIntervalDate.start,
+      timeSeriesIntervalDate.end,
+      includeLastBeforeStart
     );
   }
 

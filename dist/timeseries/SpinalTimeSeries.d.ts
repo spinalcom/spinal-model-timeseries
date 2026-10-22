@@ -27,7 +27,7 @@ export declare class SpinalTimeSeries extends Model {
     currentArchive: Ptr<SpinalTimeSeriesArchiveDay>;
     archive: Ptr<SpinalTimeSeriesArchive>;
     archiveProm: Promise<SpinalTimeSeriesArchive>;
-    currentProm: Promise<SpinalTimeSeriesArchiveDay>;
+    private dayCache;
     private loadPtrDictionary;
     /**
      * @type {Val} number of days to keep, default 2 days
@@ -73,11 +73,17 @@ export declare class SpinalTimeSeries extends Model {
     getCurrent(): Promise<SpinalDateValue>;
     setConfig(initialBlockSize: number, maxDay: number): Promise<void>;
     /**
+     * Adds a value at the end of the timeseries.
+     *
+     * The date defaults to the moment push is called, not to the moment the
+     * value is stored : when the archive of the day has to be loaded first, the
+     * hub may take long to answer (or be down), and the value keeps its time.
      * @param {number} value
-     * @returns {Promise<void>}
+     * @param {(number|string|Date)} [date=Date.now()] the time of the measure
+     * @return {*}  {Promise<void>}
      * @memberof SpinalTimeSeries
      */
-    push(value: number): Promise<void>;
+    push(value: number, date?: number | string | Date): Promise<void>;
     /**
      * @param {number} value
      * @returns {Promise<void>}
@@ -100,6 +106,11 @@ export declare class SpinalTimeSeries extends Model {
      * @memberof SpinalTimeSeries
      */
     getCurrentDay(): Promise<SpinalTimeSeriesArchiveDay>;
+    /**
+     * The archive of the day of a date, created if needed. The last one is kept
+     * at hand : consecutive pushes do not look for it again.
+     */
+    private getDayArchive;
     /**
      * @returns {Promise<AsyncIterableIterator<SpinalDateValue>>}
      * @memberof SpinalTimeSeries

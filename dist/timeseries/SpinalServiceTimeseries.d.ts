@@ -39,8 +39,10 @@ export declare class SpinalServiceTimeseries {
      * @memberof SpinalServiceTimeseries
      */
     getOrCreateTimeSeries(endpointNodeId: EndpointId): Promise<SpinalTimeSeries>;
+    private loadOrCreateTimeSeries;
+    /** keeps a timeseries loading, forgets it if it fails : the next call tries again */
+    private keep;
     private getConfigFormEndpoint;
-    private getOrCreateTimeSeriesProm;
     /**
      * @param {SpinalTimeSeries} timeseries
      * @return {Promise<SpinalDateValue>}

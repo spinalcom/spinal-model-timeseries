@@ -25,7 +25,7 @@
 import {
   SpinalTimeSeriesArchive,
   SpinalTimeSeriesArchiveDay,
-} from 'spinal-model-timeseries';
+} from '../../src';
 
 import * as tk from 'timekeeper';
 tk.freeze(1546532599592);

@@ -59,8 +59,10 @@ class SpinalTimeSeries extends spinal_core_connectorjs_1.Model {
      */
     constructor(initialBlockSize = SpinalTimeSeriesConfig_1.SpinalTimeSeriesConfig.INIT_BLOCK_SIZE, maxDay = SpinalTimeSeriesConfig_1.SpinalTimeSeriesConfig.MAX_DAY) {
         super();
+        // the archive of the last day pushed to, at hand for the next pushes
+        this.dayCache = null;
         this.archiveProm = null;
-        this.currentProm = null;
+        this.dayCache = null;
         this.loadPtrDictionary = new Map();
         if (spinal_core_connectorjs_1.FileSystem._sig_server === false)
             return;
@@ -112,14 +114,7 @@ class SpinalTimeSeries extends spinal_core_connectorjs_1.Model {
                     value: NaN,
                 });
             }
-            let currentDay;
-            try {
-                currentDay = yield this.getCurrentDay();
-            }
-            catch (error) {
-                const archive = yield this.getArchive();
-                currentDay = yield archive.getTodayArchive();
-            }
+            const currentDay = yield this.getCurrentDay();
             const len = currentDay.length.get();
             return currentDay.get(len - 1);
         });
@@ -136,32 +131,26 @@ class SpinalTimeSeries extends spinal_core_connectorjs_1.Model {
         });
     }
     /**
+     * Adds a value at the end of the timeseries.
+     *
+     * The date defaults to the moment push is called, not to the moment the
+     * value is stored : when the archive of the day has to be loaded first, the
+     * hub may take long to answer (or be down), and the value keeps its time.
      * @param {number} value
-     * @returns {Promise<void>}
+     * @param {(number|string|Date)} [date=Date.now()] the time of the measure
+     * @return {*}  {Promise<void>}
      * @memberof SpinalTimeSeries
      */
-    push(value) {
+    push(value, date = Date.now()) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.maxDay.get() === 0) {
-                const archive = yield this.getArchive();
-                archive.purgeArchive(this.maxDay.get());
-                return;
-            }
-            let currentDay;
-            try {
-                currentDay = yield this.getCurrentDay();
-            }
-            catch (error) {
-                const archive = yield this.getArchive();
-                currentDay = yield archive.getTodayArchive();
-            }
-            const normalizedDate = SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive.normalizeDate(Date.now());
+            const time = new Date(date).getTime();
+            if (isNaN(time))
+                throw new Error(`the value [${date}] is not a valid date`);
             const archive = yield this.getArchive();
-            if (currentDay.dateDay.get() !== normalizedDate) {
-                this.currentProm = archive.getTodayArchive();
-                currentDay = yield this.currentProm;
+            if (this.maxDay.get() !== 0) {
+                const day = yield this.getDayArchive(time);
+                day.push(value, time);
             }
-            currentDay.push(value);
             archive.purgeArchive(this.maxDay.get());
         });
     }
@@ -199,18 +188,40 @@ class SpinalTimeSeries extends spinal_core_connectorjs_1.Model {
     getArchive() {
         if (this.archiveProm !== null)
             return this.archiveProm;
-        this.archiveProm = ((0, loadPtr_1.loadPtr)(this.loadPtrDictionary, this.archive));
-        return this.archiveProm;
+        const promise = ((0, loadPtr_1.loadPtr)(this.loadPtrDictionary, this.archive));
+        this.archiveProm = promise;
+        // a failed load is tried again on the next call, instead of failing forever
+        promise.catch(() => {
+            if (this.archiveProm === promise)
+                this.archiveProm = null;
+        });
+        return promise;
     }
     /**
      * @returns {Promise<SpinalTimeSeriesArchiveDay>}
      * @memberof SpinalTimeSeries
      */
     getCurrentDay() {
-        if (this.currentProm !== null)
-            return this.currentProm;
-        this.currentProm = ((0, loadPtr_1.loadPtr)(this.loadPtrDictionary, this.currentArchive));
-        return this.currentProm;
+        return this.getDayArchive(Date.now());
+    }
+    /**
+     * The archive of the day of a date, created if needed. The last one is kept
+     * at hand : consecutive pushes do not look for it again.
+     */
+    getDayArchive(date) {
+        const day = SpinalTimeSeriesArchive_1.SpinalTimeSeriesArchive.normalizeDate(date);
+        if (this.dayCache !== null && this.dayCache.day === day) {
+            return this.dayCache.promise;
+        }
+        const promise = this.getArchive().then((archive) => archive.getOrCreateArchiveAtDate(day));
+        this.dayCache = { day, promise };
+        // a failed load is tried again on the next call
+        promise.catch(() => {
+            if (this.dayCache !== null && this.dayCache.promise === promise) {
+                this.dayCache = null;
+            }
+        });
+        return promise;
     }
     /**
      * @returns {Promise<AsyncIterableIterator<SpinalDateValue>>}

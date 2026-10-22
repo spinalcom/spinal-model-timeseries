@@ -27,9 +27,10 @@ export declare class SpinalTimeSeriesArchiveDay extends Model {
     constructor(initialBlockSize?: number);
     /**
      * @param {number} data
+     * @param {number} [date=Date.now()] the time of the measure
      * @memberof SpinalTimeSeriesArchiveDay
      */
-    push(data: number): void;
+    push(data: number, date?: number): void;
     /**
      * @param {number} data
      * @param {(number|string|Date)} date

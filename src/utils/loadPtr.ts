@@ -51,7 +51,12 @@ export function loadPtr<T extends spinal.Model>(
     loadPtrDictionary.set(ptr.data.value, res);
     return Promise.resolve(res);
   }
+  const id = ptr.data.value;
   const res: Promise<T> = ptr.load();
-  loadPtrDictionary.set(ptr.data.value, res);
+  loadPtrDictionary.set(id, res);
+  // a failed load is tried again on the next call, instead of failing forever
+  res.catch(() => {
+    if (loadPtrDictionary.get(id) === res) loadPtrDictionary.delete(id);
+  });
   return res;
 }
