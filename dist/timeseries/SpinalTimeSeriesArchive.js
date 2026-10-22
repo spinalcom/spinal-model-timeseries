@@ -74,6 +74,7 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
         });
         this.itemLoadedDictionary = new Map();
         this.loadPtrDictionary = new Map();
+        this.realigning = null;
     }
     /**
      * @static
@@ -96,11 +97,19 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getOrCreateArchiveAtDate(atDate) {
-        this.cleanUpNaNDates();
         const date = SpinalTimeSeriesArchive.normalizeDate(atDate);
         if (isNaN(date)) {
             throw `the value [${atDate}] is not a valid date`;
         }
+        return this.getOrCreateDay(date, true);
+    }
+    getOrCreateDay(date, mayRealign) {
+        if (!this.isAligned()) {
+            return mayRealign
+                ? this.realign().then(() => this.getOrCreateDay(date, false))
+                : Promise.reject(new MisalignedError(this));
+        }
+        this.cleanUpNaNDates();
         const spinalTimeSeriesArchiveDay = this.itemLoadedDictionary.get(date);
         if (spinalTimeSeriesArchiveDay !== undefined) {
             return spinalTimeSeriesArchiveDay;
@@ -109,7 +118,15 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
             const element = this.lstDate[index];
             const ptr = this.lstItem[index];
             if (element.get() === date) {
-                return this.keepLoaded(date, (0, loadPtr_1.loadPtr)(this.loadPtrDictionary, ptr));
+                const promise = (0, loadPtr_1.loadPtr)(this.loadPtrDictionary, ptr).then((day) => {
+                    if (isDayOf(day, date))
+                        return day;
+                    // the list said this archive is another day : rebuilt, then looked for again
+                    if (!mayRealign)
+                        throw new MisalignedError(this, date, day);
+                    return this.realign().then(() => this.getOrCreateDay(date, false));
+                });
+                return this.keepLoaded(date, promise);
             }
         }
         const value = new SpinalTimeSeriesArchiveDay_1.SpinalTimeSeriesArchiveDay(this.initialBlockSize.get());
@@ -133,6 +150,9 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     cleanUpNaNDates() {
+        // it removes a date and the archive at the same index : only when they match
+        if (!this.isAligned())
+            return;
         let idx = 0;
         while (idx < this.lstDate.length) {
             const date = this.lstDate[idx];
@@ -155,6 +175,8 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
     getFromIntervalTimeGen(start = 0, end = Date.now(), includeLastBeforeStart = false) {
         return __asyncGenerator(this, arguments, function* getFromIntervalTimeGen_1() {
             var _a, e_1, _b, _c;
+            if (!this.isAligned())
+                yield __await(this.realign());
             const interval = this.intervalOf(start, end);
             if (includeLastBeforeStart) {
                 const lastTs = yield __await(this.getLastTimeSeriesAtDate(interval.startEpoch));
@@ -163,25 +185,34 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                 }
             }
             try {
-                for (var _d = true, _e = __asyncValues(this.valuesByDay(interval)), _f; _f = yield __await(_e.next()), _a = _f.done, !_a;) {
-                    _c = _f.value;
-                    _d = false;
+                try {
+                    for (var _d = true, _e = __asyncValues(this.valuesByDay(interval)), _f; _f = yield __await(_e.next()), _a = _f.done, !_a;) {
+                        _c = _f.value;
+                        _d = false;
+                        try {
+                            const values = _c;
+                            for (const value of values)
+                                yield yield __await(value);
+                        }
+                        finally {
+                            _d = true;
+                        }
+                    }
+                }
+                catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                finally {
                     try {
-                        const values = _c;
-                        for (const value of values)
-                            yield yield __await(value);
+                        if (!_d && !_a && (_b = _e.return)) yield __await(_b.call(_e));
                     }
-                    finally {
-                        _d = true;
-                    }
+                    finally { if (e_1) throw e_1.error; }
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
-                try {
-                    if (!_d && !_a && (_b = _e.return)) yield __await(_b.call(_e));
-                }
-                finally { if (e_1) throw e_1.error; }
+            catch (error) {
+                // the values already given cannot be taken back : this read fails, the
+                // next ones read the rebuilt archive
+                if (error instanceof MisalignedError)
+                    yield __await(this.realign());
+                throw error;
             }
         });
     }
@@ -260,6 +291,8 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
             if (isNaN(normalizedDate)) {
                 throw `the value [${date}] is not a valid date`;
             }
+            if (!this.isAligned())
+                yield this.realign();
             let validArchiveDate = null;
             let idx;
             for (idx = 0; idx < this.lstDate.length; idx += 1) {
@@ -302,6 +335,22 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getFromIntervalTime(start, end = Date.now(), includeLastBeforeStart = false) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.isAligned())
+                yield this.realign();
+            try {
+                return yield this.readInterval(start, end, includeLastBeforeStart);
+            }
+            catch (error) {
+                if (!(error instanceof MisalignedError))
+                    throw error;
+                // a day was not the one its date said : rebuilt, then read again
+                yield this.realign();
+                return this.readInterval(start, end, includeLastBeforeStart);
+            }
+        });
+    }
+    readInterval(start, end, includeLastBeforeStart) {
         var _a, e_2, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const interval = this.intervalOf(start, end);
@@ -342,11 +391,21 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
      * @memberof SpinalTimeSeriesArchive
      */
     getArchiveAtDate(date, offsetArchive = 0) {
-        this.cleanUpNaNDates();
         const normalizedDate = SpinalTimeSeriesArchive.normalizeDate(date);
         if (isNaN(normalizedDate)) {
             throw `the value [${date}] is not a valid date`;
         }
+        return this.findDay(date, normalizedDate, offsetArchive, true);
+    }
+    findDay(date, normalizedDate, offsetArchive, mayRealign) {
+        const again = (error) => {
+            if (!(error instanceof MisalignedError) || !mayRealign)
+                return Promise.reject(error);
+            return this.realign().then(() => this.findDay(date, normalizedDate, offsetArchive, false));
+        };
+        if (!this.isAligned())
+            return again(new MisalignedError(this));
+        this.cleanUpNaNDates();
         if (offsetArchive === 0 && this.itemLoadedDictionary.has(normalizedDate)) {
             return this.itemLoadedDictionary.get(normalizedDate);
         }
@@ -362,13 +421,16 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
         if (this.itemLoadedDictionary.has(archiveDate)) {
             return this.itemLoadedDictionary.get(archiveDate);
         }
-        return this.loadDay(archiveDate, this.lstItem[idx]);
+        return this.loadDay(archiveDate, this.lstItem[idx]).catch(again);
     }
     /** the archive of a day, loaded once ; a failed load is tried again on the next call */
     loadDay(date, ptr) {
         const loaded = this.itemLoadedDictionary.get(date);
         if (loaded !== undefined)
             return loaded;
+        // a date without archive : lstDate is longer than lstItem
+        if (ptr === undefined)
+            return Promise.reject(new MisalignedError(this, date));
         const promise = new Promise((resolve, reject) => {
             if (typeof ptr.data.model !== 'undefined') {
                 resolve(ptr.data.model);
@@ -381,8 +443,69 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
                         reject(new Error(`the archive of the day ${new Date(date).toISOString()} could not be loaded`));
                 });
             }
+        }).then((day) => {
+            if (!isDayOf(day, date))
+                throw new MisalignedError(this, date, day);
+            return day;
         });
         return this.keepLoaded(date, promise);
+    }
+    /** whether there is an archive for every date, the same number of each */
+    isAligned() {
+        return this.lstDate.length === this.lstItem.length;
+    }
+    /**
+     * lstDate and lstItem are two lists that the hub stores apart : a write of
+     * one that does not reach it (a program that stops between the two, a hub
+     * that restarts), or two programs writing the archive at once, leave them
+     * misaligned, the date of a day pointing to another day or to nothing.
+     *
+     * Rebuilds lstDate from the day each archive of lstItem holds, in the same
+     * order, the way it is fixed by hand. An empty pointer of lstItem is dropped.
+     * Nothing changes if an archive can not be loaded. Loads every archive once.
+     * One rebuild at a time ; the calls made meanwhile wait for it.
+     */
+    realign() {
+        if (this.realigning === null) {
+            const done = () => {
+                this.realigning = null;
+            };
+            this.realigning = this.rebuildDates().then(done, (error) => {
+                done();
+                throw error;
+            });
+        }
+        return this.realigning;
+    }
+    rebuildDates() {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (let attempt = 0; attempt < 3; attempt += 1) {
+                const ptrs = [];
+                for (let idx = 0; idx < this.lstItem.length; idx += 1)
+                    ptrs.push(this.lstItem[idx]);
+                // a few archives at a time, not every day in one answer of the hub
+                const dates = [];
+                for (let idx = 0; idx < ptrs.length; idx += SpinalTimeSeriesArchive.loadAhead) {
+                    const chunk = ptrs.slice(idx, idx + SpinalTimeSeriesArchive.loadAhead);
+                    dates.push(...(yield Promise.all(chunk.map(dayOfPtr))));
+                }
+                // the list changed while the archives loaded (the hub, another program)
+                if (ptrs.length !== this.lstItem.length || ptrs.some((ptr, idx) => this.lstItem[idx] !== ptr)) {
+                    continue;
+                }
+                const before = this.lstDate.length;
+                this.lstDate.set(dates);
+                // found through the misaligned lists
+                this.itemLoadedDictionary.clear();
+                // the empty pointers have a NaN date
+                const dropped = dates.filter((date) => isNaN(date)).length;
+                this.cleanUpNaNDates();
+                console.warn(`[spinal-model-timeseries] timeseries archive ${this._server_id}: ${before} dates for ${ptrs.length} days, the dates were rebuilt from the days` +
+                    (dropped > 0 ? `, ${dropped} empty pointers removed` : ''));
+                return;
+            }
+            throw new Error('the archive kept changing while its dates were rebuilt');
+        });
     }
     /** keeps a day loading, forgets it if the load fails : the next call tries again */
     keepLoaded(date, promise) {
@@ -415,6 +538,9 @@ class SpinalTimeSeriesArchive extends spinal_core_connectorjs_1.Model {
         return false;
     }
     purgeArchive(maxDay) {
+        // it removes a date and the archive at the same index : only when they match
+        if (maxDay > 0 && !this.isAligned())
+            return;
         if (maxDay > 0) {
             let lstDateToDelete = [];
             const maxDayMS = maxDay * 86400000;
@@ -445,6 +571,47 @@ exports.SpinalTimeSeriesArchive = SpinalTimeSeriesArchive;
  * the hub sends them in one answer, that the program handles at once
  */
 SpinalTimeSeriesArchive.loadAhead = 8;
+/** an archive whose dates do not match its days, see SpinalTimeSeriesArchive.realign */
+class MisalignedError extends Error {
+    constructor(archive, date, day) {
+        super(day !== undefined
+            ? `the date ${new Date(date).toISOString()} of the timeseries archive ${archive._server_id} holds the day ${new Date(day.dateDay.get()).toISOString()}`
+            : `the timeseries archive ${archive._server_id} has ${archive.getDates().length} dates for another number of days`);
+        this.name = 'MisalignedError';
+    }
+}
+/** true when the archive holds the day of date, or does not say which day it holds */
+function isDayOf(day, date) {
+    const dateDay = day === null || day === void 0 ? void 0 : day.dateDay;
+    if (dateDay === undefined || typeof dateDay.get !== 'function')
+        return true;
+    return dateDay.get() === date;
+}
+/** the day an archive holds, NaN for an empty pointer */
+function dayOfPtr(ptr) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!ptr || (ptr.data.model === undefined && !ptr.data.value))
+            return NaN;
+        const day = yield new Promise((resolve, reject) => {
+            if (ptr.data.model !== undefined)
+                resolve(ptr.data.model);
+            else
+                ptr.load((element, error) => {
+                    // maybe the hub that does not answer : nothing is changed, tried again on the next call
+                    if (element && !error)
+                        resolve(element);
+                    else
+                        reject(new Error(`the timeseries day archive ${ptr.data.value} could not be loaded`));
+                });
+        });
+        const dateDay = day.dateDay;
+        if (dateDay === undefined || typeof dateDay.get !== 'function') {
+            // no way to tell its day : nothing is changed
+            throw new Error(`the timeseries day archive ${day._server_id} does not say which day it holds`);
+        }
+        return dateDay.get();
+    });
+}
 /**
  * Pushes the values of a day that are in the interval, the way the reading
  * always went : the day of the start skips the values before it, and the

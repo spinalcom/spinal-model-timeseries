@@ -53,3 +53,14 @@ read, instead of one round trip to the hub per day :
 `SpinalTimeSeriesArchive.loadAhead` days at once (8 by default). More is faster
 on long intervals, but the hub sends them in one answer, that the program
 handles at once.
+
+### Misaligned archives
+
+The archive keeps the dates of its days (`lstDate`) and the days (`lstItem`) in
+two lists, that the hub stores apart. A write of one of them lost (a program
+that stops while sending, a hub that restarts) leaves them misaligned : a date
+pointing to another day, or to none. The reads, the pushes and the inserts on
+such an archive rebuild `lstDate` from the day each archive of `lstItem` holds
+(`dateDay`), and log it : `[spinal-model-timeseries] timeseries archive ...: 27
+dates for 25 days, the dates were rebuilt from the days`. The purge waits until
+the lists are aligned again. `archive.realign()` does it on demand.
